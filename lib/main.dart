@@ -3,9 +3,11 @@ import 'dart:math';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart' as material;
+import 'package:fluent_ui/fluent_ui.dart' as fluent;
 
 import 'model/Path.dart';
 
@@ -40,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String ip = '192.168.31.249';
   List<String> data = [];
-  FolderItem root = FolderItem("root", 0, "/", isOpen: true);
+  FolderItem root = FolderItem("root", 0, "/", -1, isOpen: true);
   int topIndex = 0;
 
   // 在State类中定义一个TextEditingController对象
@@ -56,34 +58,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-    //     title: Text(widget.title),
-    //   ),
-    //   body: Column(
-    //     mainAxisAlignment: MainAxisAlignment.center,
-    //     children: <Widget>[
-    //       _editIP(),
-    //       _buildSubmitBtn(),
-    //       _FileList()
-    //     ],
-    //   ),
-    //   floatingActionButton: FloatingActionButton(
-    //     onPressed: _incrementCounter,
-    //     tooltip: 'Increment',
-    //     child: const Icon(Icons.add),
-    //   ), // This trailing comma makes auto-formatting nicer for build methods.
-    // );
-
-    root.isOpen = true;
-    // root.children = [
-    //   FileItem("f1", 0, '/'),
-    //   FileItem("f1", 0, '/'),
-    //   FolderItem("fo1", 0, '/'),
-    //   FolderItem("fo1", 0, '/')
-    // ];
-
     List<NavigationPaneItem> items = [
       PaneItem(
         icon: const Icon(Icons.home),
@@ -118,14 +92,17 @@ class _MyHomePageState extends State<MyHomePage> {
       crossAxisAlignment: CrossAxisAlignment.start, // 子项顶部对齐
       children: [_PathTree()],
     ));
-    // return Column(
-    //   mainAxisAlignment: MainAxisAlignment.center,
-    //   children: <Widget>[_editIP(), _buildSubmitBtn(), _FileList()],
-    // );
   }
 
   Widget _PathTree() {
-    return SizedBox(width: 300, child: _buildPathItem(root));
+    return Expanded(
+        child: Container(
+          color: fluent.Colors.green,
+          child: ListView(
+            shrinkWrap: true,
+            children: [_buildPathItem(root)],
+          ),
+        ));
   }
 
   Widget _buildPathItem(Path path) {
@@ -140,27 +117,96 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildFileItem(FileItem file) {
-    return Button(child: Text(file.name), onPressed: () => {} );
+    return material.Row(children: [
+      createCustomWidgets(file.level),
+      Button(child: Text(file.name), onPressed: () => {
+        _copyFileUrlToClipboard(file)
+      })
+    ]);
+
+  }
+
+  _copyFileUrlToClipboard(FileItem file) {
+    var logger = Logger();
+
+    var uri = Uri.http('192.168.31.249:1111', file.path, {'cmd': 'file'});
+    var url = uri.toString();
+    logger.d('swithun-xxxx $url');
+    Clipboard.setData(ClipboardData(text: url));
+    displayInfoBar(context, builder: (context, close) {
+      return const fluent.InfoBar(title: Text('已复制'));
+    });
+
+  }
+
+  Widget createCustomWidgets(int size) {
+    if (size >= 0) {
+      return Row(
+        children: List.generate(size + 1, (index) {
+          return createCustomWidget();
+        }),
+      );
+    } else {
+      return Container();
+    }
+  }
+
+  Widget createCustomWidget() {
+    return Container(
+      width: 10.0, // 宽度设置为 40
+      color: fluent.Colors.yellow, // 透明背景颜色
+      child: Center(
+        child: Container(
+          width: 4.0, // 竖条宽度设置为 15
+          color: fluent.Colors.yellow, // 竖条蓝色
+        ),
+      ),
+    );
   }
 
   Widget _buildFolderItem(FolderItem folder) {
-    return Expander(
-      header: Text(folder.name),
-      content: ListView(
-        shrinkWrap: true,
-        children: [..._buildFolderChildren(folder)],
+    var children = [];
+    if (folder.isOpen) {
+      children = _buildFolderChildren(folder);
+    }
+    return material.Row(children: [
+      createCustomWidgets(folder.level),
+      Expanded(
+        child: Column(
+          children: [
+            fluent.GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () {
+                _onFolderClick(folder);
+              },
+              child: Container(
+                color: material.Colors.blue,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(folder.name),
+                  ],
+                ),
+              ),
+            ),
+            ...children
+          ],
+        ),
       ),
-      onStateChanged: (open) {
-        setState(() {
-          folder.isOpen = open;
-          if (folder.path == '/') {
-            _getBaseFileList();
-          } else {
-            _getChildFileList(folder);
-          }
-        });
-      },
-    );
+    ]);
+  }
+
+  _onFolderClick(FolderItem folder) {
+    if (!folder.isOpen) {
+      if (folder.path == '/') {
+        _getBaseFileList();
+      } else {
+        _getChildFileList(folder);
+      }
+    }
+    setState(() {
+      folder.isOpen = !folder.isOpen;
+    });
   }
 
   List<Widget> _buildFolderChildren(FolderItem folder) {
@@ -209,8 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var parent = folder.path;
 
-    var url = Uri.http(
-        '192.168.31.249:1111', parent, {'cmd': 'list'});
+    var url = Uri.http('192.168.31.249:1111', parent, {'cmd': 'list'});
 
     var urlStr = url.toString();
     logger.d("_getChildFileList $urlStr");
@@ -290,9 +335,9 @@ class _MyHomePageState extends State<MyHomePage> {
       var size = file['size'];
       var path = parent + '/' + name;
       if (hasChildren != null) {
-        pathList.add(FolderItem(name, 0, path));
+        pathList.add(FolderItem(name, 0, path, folder.level + 1));
       } else {
-        pathList.add(FileItem(name, 0, path));
+        pathList.add(FileItem(name, 0, path, folder.level + 1));
       }
     }
     var newFolder = folder;
@@ -333,8 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
       logger.d(label);
       list.add(label);
 
-      pathList.add(FolderItem(label, 0, mount));
-
+      pathList.add(FolderItem(label, 0, mount, 0));
     }
 
     logger.d(list);
