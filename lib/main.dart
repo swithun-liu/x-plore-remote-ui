@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +7,6 @@ import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart' as material;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
-import 'package:x_plore_remote_ui/view/component/ColorBgContainer.dart';
 import 'package:x_plore_remote_ui/view/component/FolderItemWidget.dart';
 
 import 'model/Path.dart';
@@ -42,7 +39,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   String ip = '192.168.31.249';
   List<String> data = [];
   FolderItem root = FolderItem("root", 0, "/", -1, isOpen: true);
@@ -52,12 +48,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController ipController =
       TextEditingController(text: '192.168.31.249');
   final FocusNode _focusNode = FocusNode();
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,44 +98,6 @@ class _MyHomePageState extends State<MyHomePage> {
     ));
   }
 
-  // Widget _buildPathItem(Path path) {
-  //   // 当Path是File，和当Path是Folder，做不同的处理
-  //   Widget child;
-  //   if (path is FileItem) {
-  //     child = _buildFileItem(path);
-  //   } else if (path is FolderItem) {
-  //     child = _buildFolderItem(path);
-  //   } else {
-  //     child = Text("未知类型");
-  //   }
-  //
-  //   return fluent.IntrinsicHeight(
-  //     child: child,
-  //   );
-  // }
-
-  Widget _buildFileItem(FileItem file) {
-    return material.Row(children: [
-      createCustomWidget(),
-      Expanded(
-        child: ColorBgContainer(
-          tagUpColor: fluent.Colors.grey[20],
-          tagDownColor: fluent.Colors.grey[50],
-          onTap: () {
-            _copyFileUrlToClipboard(file);
-          },
-          child: Expanded(
-              child: fluent.Row(
-            children: [
-              const fluent.Icon(fluent.FluentIcons.page),
-              Text(file.name)
-            ],
-          )),
-        ),
-      )
-    ]);
-  }
-
   _copyFileUrlToClipboard(FileItem file) {
     var logger = Logger();
 
@@ -183,54 +135,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Widget _buildFolderItem(FolderItem folder) {
-  //
-  //   var children = [];
-  //   if (folder.isOpen) {
-  //     children = _buildFolderChildren(folder);
-  //   }
-  //   var folderIcon = folder.isOpen ? fluent.FluentIcons
-  //       .fabric_open_folder_horizontal : fluent.FluentIcons.fabric_folder_fill;
-  //   bool showProcess = false;
-  //   return material.Row(children: [
-  //     createCustomWidget(),
-  //     Expanded(
-  //       child: Column(
-  //         children: [
-  //           Row(
-  //             children: [
-  //               Expanded(
-  //                 child: ColorBgContainer(
-  //                   tagUpColor: fluent.Colors.grey[20],
-  //                   tagDownColor: fluent.Colors.grey[50],
-  //                   onTap: () {
-  //                     showProcess = true;
-  //                     _onFolderClick(folder);
-  //                     showProcess = false;
-  //                   },
-  //                   child: Row(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       fluent.Icon(folderIcon),
-  //                       Text(folder.name),
-  //                     ],
-  //                   ),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //             LinearProgressIndicator(
-  //               color: fluent.Colors.blue['normal'],
-  //               minHeight: 1,
-  //             ),
-  //           ...children
-  //         ],
-  //       ),
-  //     ),
-  //   ]);
-  // }
 
-  _onFileClick(FileItem file) async {}
+  _onFileClick(FileItem file) async {
+    _copyFileUrlToClipboard(file);
+  }
 
   _onFolderClick(FolderItem folder) async {
     if (!folder.isOpen) {
@@ -246,13 +154,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // List<Widget> _buildFolderChildren(FolderItem folder) {
-  //   List<Widget> ws = [];
-  //   if (folder.isOpen) {
-  //     ws.addAll(folder.children.map((e) => buildPathItem(e)).toList());
-  //   }
-  //   return ws;
-  // }
 
   // 编辑IP地址，默认填写 192.168.31.249
   Widget _editIP() {
