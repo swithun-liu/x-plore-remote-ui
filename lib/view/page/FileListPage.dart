@@ -6,7 +6,10 @@ import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluent_ui/fluent_ui.dart' as fluent;
+import 'package:x_plore_remote_ui/view/component/filelist/FileUIItem.dart';
+import 'package:x_plore_remote_ui/view/component/filelist/FolderUIItem.dart';
 
+import '../../model/Directory.dart';
 import '../../model/Path.dart';
 
 class FileListPage extends StatefulWidget {
@@ -17,13 +20,18 @@ class FileListPage extends StatefulWidget {
 }
 
 class _FileListPageState extends State<FileListPage> {
-  FolderItem root = FolderItem("root", 0, "/", 0, isOpen: false);
-  List<Directory> directories = [];
+  FolderData root = FolderData("root", 0, "-", 0, isOpen: false);
+  List<DirectoryUIData> directories = [];
   var logger = Logger();
   String ip = '192.168.31.249';
 
+  int pos = -1;
+  int lastPos = -1;
+
   late final Box settingBox;
   List<String> history = [];
+
+  Set<String> lastStateOpeningFolder = {};
 
   @override
   void initState() {
@@ -43,6 +51,7 @@ class _FileListPageState extends State<FileListPage> {
 
     setState(() {
       directories = parseFileList();
+      logger.d("directories: ${directories}");
     });
   }
 
@@ -54,30 +63,56 @@ class _FileListPageState extends State<FileListPage> {
           var d = directories[index];
           var kongge = ' ' * (d.level * 2);
 
+          Widget child = const Text("unknown");
+          switch (d.runtimeType) {
+            case FolderUIData: {
+              child = FolderUIItem(
+                  d as FolderUIData
+              );
+            }
+            case FileUIData: {
+              child = FileUIItem(d, false, false);
+            }
+          }
+
           return GestureDetector(
-            onTap: () => {_onFolderClick(d.originalPath)},
-            child: Text('$kongge + ${d.name}'),
+            onTap: () => {
+              setState(() {
+                logger.d("new pos ${pos}");
+                lastPos = pos;
+                pos = index;
+              }),
+              _onFolderClick(d.originalPath)
+            },
+            // child: Text('$kongge + ${d.name}'),
+            child: child,
           );
 
           return Text('$kongge + ${d.name}');
         });
   }
 
-  List<Directory> parseFileList() {
+  List<DirectoryUIData> parseFileList() {
     logger.d('swithun-xxxx parseFileList');
-    List<Directory> directories = [];
+    List<DirectoryUIData> directories = [];
     return iParsePath(directories, root, 0);
   }
 
-  List<Directory> iParsePath(
-      List<Directory> directories, Path parent, int level) {
+  List<DirectoryUIData> iParsePath(
+      List<DirectoryUIData> directories, DirectoryData parent, int level) {
     switch (parent.runtimeType) {
-      case FolderItem:
+      case FolderData:
         {
-          var d = Directory(
-              DirectoryType.FOLDER, parent.path, parent.name, level, parent);
+          var folder = (parent as FolderData);
+          var d = FolderUIData(
+              DirectoryType.FOLDER,
+              folder.path,
+              folder.name,
+              level,
+              folder,
+              lastStateOpeningFolder.contains(folder.path),
+              folder.isOpen);
           directories.add(d);
-          var folder = (parent as FolderItem);
           if (folder.isOpen) {
             for (var directory in folder.children) {
               iParsePath(directories, directory, level + 1);
@@ -86,9 +121,9 @@ class _FileListPageState extends State<FileListPage> {
 
           break;
         }
-      case FileItem:
+      case FileData:
         {
-          var d = Directory(
+          var d = FileUIData(
               DirectoryType.FILE, parent.path, parent.name, level, parent);
           directories.add(d);
           break;
@@ -99,7 +134,7 @@ class _FileListPageState extends State<FileListPage> {
   }
 
 
-  _copyFileUrlToClipboard(FileItem file) {
+  _copyFileUrlToClipboard(FileData file) {
     var logger = Logger();
 
     var uri = Uri.http('$ip:1111', file.path, {'cmd': 'file'});
@@ -124,35 +159,50 @@ class _FileListPageState extends State<FileListPage> {
     });
   }
 
-  _onFolderClick(Path path) async {
+  _onFolderClick(DirectoryData path) async {
+    lastStateOpeningFolder = directories
+        .where((element) {
+          bool result = false;
+          if (element.originalPath is FolderData) {
+            if ((element.originalPath as FolderData).isOpen) {
+              result = true;
+            }
+          }
+          return result;
+        })
+        .toSet()
+        .map((e) => e.path)
+        .toSet();
+
     switch (path.runtimeType) {
-      case FolderItem:
+      case FolderData:
         {
-          var folder = path as FolderItem;
+          var folder = path as FolderData;
           if (folder.isOpen) {
             folder.isOpen = false;
           } else {
-            if (path.path == '/') {
+            folder.isOpen = true;
+            if (path.path == '-') {
               await _getBaseFileList();
             } else {
-              await _getChildFileList(path as FolderItem);
+              await _getChildFileList(path as FolderData);
             }
-            folder.isOpen = true;
           }
 
         }
-      case FileItem:
+      case FileData:
         {
-          _copyFileUrlToClipboard(path as FileItem);
+          _copyFileUrlToClipboard(path as FileData);
         }
     }
 
     setState(() {
       directories = parseFileList();
+      logger.d("directories: ${directories.map((e) => e.path)}");
     });
   }
 
-  _getChildFileList(FolderItem folder) async {
+  _getChildFileList(FolderData folder) async {
     var logger = Logger();
     logger.d("_getChildFileList");
 
@@ -186,16 +236,16 @@ class _FileListPageState extends State<FileListPage> {
     var files = json['files'];
     logger.d(files);
     // 如果有 has_children 字段，就是文件夹，否则就是文件，拼成FolderItem和FileItem
-    List<Path> pathList = [];
+    List<DirectoryData> pathList = [];
     for (var file in files) {
       var hasChildren = file['has_children'];
       var name = file['n'];
       var size = file['size'];
       var path = parent + '/' + name;
       if (hasChildren != null) {
-        pathList.add(FolderItem(name, 0, path, folder.level + 1));
+        pathList.add(FolderData(name, 0, path, folder.level + 1));
       } else {
-        pathList.add(FileItem(name, 0, path, folder.level + 1));
+        pathList.add(FileData(name, 0, path, folder.level + 1));
       }
     }
     var newFolder = folder;
@@ -228,14 +278,14 @@ class _FileListPageState extends State<FileListPage> {
     logger.d(files);
     // 取出 lable 是名字，组成list
     List<String> list = [];
-    List<Path> pathList = [];
+    List<DirectoryData> pathList = [];
     for (var file in files) {
       var label = file['label'];
       var mount = file['mount'];
       logger.d(label);
       list.add(label);
 
-      pathList.add(FolderItem(label, 0, mount, 0));
+      pathList.add(FolderData(label, 0, mount, 0));
     }
 
     logger.d(list);
@@ -247,15 +297,3 @@ class _FileListPageState extends State<FileListPage> {
     });
   }
 }
-
-class Directory {
-  DirectoryType type;
-  String path;
-  String name;
-  int level;
-  Path originalPath;
-
-  Directory(this.type, this.path, this.name, this.level, this.originalPath);
-}
-
-enum DirectoryType { FILE, FOLDER }

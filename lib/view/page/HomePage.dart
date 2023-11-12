@@ -22,7 +22,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String ip = '192.168.31.249';
   List<String> data = [];
-  FolderItem root = FolderItem("root", 0, "/", -1, isOpen: false);
+  FolderData root = FolderData("root", 0, "/", -1, isOpen: false);
   int topIndex = 0;
   List<String> history = [];
 

@@ -5,12 +5,12 @@ import 'package:fluent_ui/fluent_ui.dart' as fluent;
 
 import 'ColorBgContainer.dart';
 
-Widget buildPathItem(Path path, Function(FolderItem folder) onFolderClick, Function(FileItem file) onFileClick) {
+Widget buildPathItem(DirectoryData path, Function(FolderData folder) onFolderClick, Function(FileData file) onFileClick) {
   // 当Path是File，和当Path是Folder，做不同的处理
   Widget child;
-  if (path is FileItem) {
+  if (path is FileData) {
     child = _buildFileItem(path, onFileClick);
-  } else if (path is FolderItem) {
+  } else if (path is FolderData) {
     child = FolderItemWidget(path, onFolderClick, onFileClick);
   } else {
     child = Text("未知类型");
@@ -21,7 +21,7 @@ Widget buildPathItem(Path path, Function(FolderItem folder) onFolderClick, Funct
   );
 }
 
-Widget _buildFileItem(FileItem file, Function(FileItem file) onFileClick) {
+Widget _buildFileItem(FileData file, Function(FileData file) onFileClick) {
   return material.Row(
       children: [
         createCustomWidget(),
@@ -47,9 +47,9 @@ Widget _buildFileItem(FileItem file, Function(FileItem file) onFileClick) {
 }
 
 class FolderItemWidget extends StatefulWidget {
-  FolderItem folder;
-  Function(FolderItem folder) onFolderClick;
-  Function(FileItem file) onFileClick;
+  FolderData folder;
+  Function(FolderData folder) onFolderClick;
+  Function(FileData file) onFileClick;
 
   FolderItemWidget(this.folder, this.onFolderClick, this.onFileClick);
 
@@ -112,7 +112,7 @@ class _FolderItemWidget extends State<FolderItemWidget> {
     ]);
   }
 
-  Future<void> _test(FolderItem folder, Function(FolderItem folder) onFolderClick) async {
+  Future<void> _test(FolderData folder, Function(FolderData folder) onFolderClick) async {
     setState(() {
       showProcess = true;
     });
@@ -123,7 +123,7 @@ class _FolderItemWidget extends State<FolderItemWidget> {
   }
 
   List<Widget> _buildFolderChildren(
-      FolderItem folder, Function(FolderItem folder) onFolderClick, Function(FileItem file) onFileClick) {
+      FolderData folder, Function(FolderData folder) onFolderClick, Function(FileData file) onFileClick) {
     List<Widget> ws = [];
     if (folder.isOpen) {
       ws.addAll(folder.children
