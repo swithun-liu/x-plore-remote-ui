@@ -7,6 +7,7 @@ import 'package:x_plore_remote_ui/view/component/filelist/FolderUIItem.dart';
 
 class HistoryPage extends StatefulWidget {
   final List<String> history;
+
   const HistoryPage(this.history, {super.key});
 
   @override
@@ -24,17 +25,20 @@ class _HistoryPageState extends State<HistoryPage> {
     return ListView.builder(
         itemCount: widget.history.length,
         itemBuilder: (context, index) {
-          final contact = widget.history[index];
-          return GestureDetector(
-            onTap: () => {
-            setState(() {
-              logger.d("new pos ${pos}");
-              lastPos = pos;
-              pos = index;
-            })
-            },
-            child: FolderUIItem(
-              FolderUIData(DirectoryType.FOLDER, "haha", "hahaname", 0, FolderData("haha", 3, "haha", 0), false, false),
+          return Container(
+            decoration: BoxDecoration(color: Colors.blue),
+            child: GestureDetector(
+              onTap: () => {
+                setState(() {
+                  logger.d("new pos ${pos}");
+                  lastPos = pos;
+                  pos = index;
+                })
+              },
+              child: FolderUIItem(
+                FolderUIData(DirectoryType.FOLDER, "haha", "hahaname", 0,
+                    FolderData("haha", 3, "haha", 0), false, false),
+              ),
             ),
           );
         });

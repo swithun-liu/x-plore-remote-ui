@@ -1,7 +1,7 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/model/Directory.dart';
-import 'package:x_plore_remote_ui/model/Path.dart';
+import 'package:x_plore_remote_ui/view/component/filelist/FolderUIConfig.dart';
 
 class FolderUIItem extends StatefulWidget {
   FolderUIData directory;
@@ -14,32 +14,23 @@ class FolderUIItem extends StatefulWidget {
 
 class _FolderUIItemState extends State<FolderUIItem>
     with SingleTickerProviderStateMixin {
-  final double smallTextSize = 14;
-  final double bigTextSize = 18;
-  late AnimationController _controller;
+  final double defSmallTextSize = 14;
+  final double defBigTextSize = 18;
 
-  late TextStyle smallStyle;
-  late TextStyle bigStyle;
+  late bool animUseOpenIcon;
+  late AnimIconSize animIconSize;
+  late double animTextSize;
+
   Logger logger = Logger();
+
+  late AnimationController _controller;
   late Animation<double> _animation;
   var duration = const Duration(milliseconds: 200);
+  var halfDuration = const Duration(milliseconds: 100);
 
-  IconData get folderIcon {
-    if (widget.directory.type == DirectoryType.FOLDER) {
-      if ((widget.directory.originalPath as FolderData).isOpen) {
-        return FluentIcons.fabric_open_folder_horizontal;
-      } else {
-        return FluentIcons.fabric_folder_fill;
-      }
-    } else if (widget.directory.type == DirectoryType.FILE) {
-      return FluentIcons.page;
-    } else {
-      return FluentIcons.unknown;
-    }
+  bool get getIsOpening {
+    return widget.directory.isOpen;
   }
-
-  late TextStyle style;
-  late double iconSize;
 
   @override
   void initState() {
@@ -48,43 +39,38 @@ class _FolderUIItemState extends State<FolderUIItem>
       vsync: this,
     );
 
-    smallStyle = TextStyle(
-      fontSize: smallTextSize,
-    );
-    bigStyle = TextStyle(
-      fontSize: bigTextSize,
-    );
-
-    var begin = smallTextSize;
-    var end = bigTextSize;
-
     if (widget.directory.wasOpen) {
-      style = bigStyle;
-      iconSize = bigTextSize;
-      begin = bigTextSize;
+      animTextSize = defBigTextSize;
+
+      if (widget.directory.isOpen) {
+        animIconSize = AnimIconSize(defBigTextSize, defBigTextSize);
+      } else {
+        animIconSize = AnimIconSize(defBigTextSize, defSmallTextSize);
+      }
+      animUseOpenIcon = true;
     } else {
-      style = smallStyle;
-      iconSize = smallTextSize;
-      begin = smallTextSize;
+      animTextSize = defSmallTextSize;
+      animUseOpenIcon = false;
+
+      if (widget.directory.isOpen) {
+        animIconSize = AnimIconSize(defSmallTextSize, defBigTextSize);
+      } else {
+        animIconSize = AnimIconSize(defSmallTextSize, defSmallTextSize);
+      }
     }
 
-    if (widget.directory.isOpen) {
-      end = bigTextSize;
-    } else {
-      end = smallTextSize;
-    }
-
-    _animation = Tween<double>(begin: begin, end: end).animate(_controller);
+    _animation = Tween<double>(begin: animIconSize.begin, end: animIconSize.end)
+        .animate(_controller);
 
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       setState(() {
         if (widget.directory.isOpen) {
-          style = bigStyle;
-          iconSize = bigTextSize;
+          animUseOpenIcon = true;
+          animTextSize = defBigTextSize;
         } else {
-          style = smallStyle;
-          iconSize = smallTextSize;
+          animUseOpenIcon = false;
+          animTextSize = defSmallTextSize;
         }
         _controller.forward();
       });
@@ -93,7 +79,6 @@ class _FolderUIItemState extends State<FolderUIItem>
 
   @override
   void dispose() {
-    // TODO: implement dispose
     _controller.dispose();
     super.dispose();
   }
@@ -101,32 +86,67 @@ class _FolderUIItemState extends State<FolderUIItem>
   @override
   Widget build(BuildContext context) {
     logger.d("FolderUIItem build ${widget.directory.name}");
+
     return Row(
       children: [
-        SizedBox(
-          width: widget.directory.level * smallTextSize,
+        Container(
+          height: defSmallTextSize,
+          width: widget.directory.level * defSmallTextSize,
         ),
-        AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              return AnimatedContainer(
-                  curve: Curves.fastLinearToSlowEaseIn,
-                  duration: duration,
-                  width: _animation.value,
-                  height: _animation.value,
-                  child: Icon(
-                    folderIcon,
-                    size: _animation.value,
-                  ));
-            })
-        // child: Icon(
-        // folderIcon,
-        // size: iconSize,
-        // ),
-        ,
-        _buildFolderTitle(style)
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.all(3),
+            padding: EdgeInsets.all(5),
+            decoration: BoxDecoration(
+                color: Colors.grey[30],
+                borderRadius: BorderRadius.circular(5.0),
+                boxShadow: [
+                  BoxShadow(
+                      color: Colors.grey[70],
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: Offset(0, 0))
+                ]),
+            child: Row(
+              children: [
+                AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      return AnimatedContainer(
+                          curve: Curves.fastLinearToSlowEaseIn,
+                          duration: duration,
+                          margin: EdgeInsets.only(right: 5),
+                          width: _animation.value,
+                          height: _animation.value,
+                          child: _buildIcon());
+                    }),
+                _buildFolderTitle(TextStyle(
+                  fontSize: animTextSize,
+                ))
+              ],
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  Widget _buildIcon() {
+    return AnimatedSwitcher(
+        duration: halfDuration,
+        transitionBuilder: (child, anim) =>
+            FadeTransition(opacity: anim, child: child),
+        child: animUseOpenIcon
+            ? Icon(
+                FluentIcons.fabric_open_folder_horizontal,
+                size: _animation.value,
+                key: const ValueKey('icon1'),
+              )
+            : Icon(
+                FluentIcons.fabric_folder_fill,
+                size: _animation.value,
+                key: const ValueKey('icon2'),
+              ));
   }
 
   Widget _buildFolderTitle(TextStyle style) {

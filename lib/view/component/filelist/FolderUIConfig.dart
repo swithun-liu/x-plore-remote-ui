@@ -5,3 +5,11 @@ class FolderUIConfig {
 
   FolderUIConfig(this.nameStyle);
 }
+
+
+class AnimIconSize {
+  double begin;
+  double end;
+
+  AnimIconSize(this.begin, this.end);
+}

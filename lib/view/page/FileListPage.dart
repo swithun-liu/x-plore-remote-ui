@@ -65,14 +65,14 @@ class _FileListPageState extends State<FileListPage> {
 
           Widget child = const Text("unknown");
           switch (d.runtimeType) {
-            case FolderUIData: {
-              child = FolderUIItem(
-                  d as FolderUIData
-              );
-            }
-            case FileUIData: {
-              child = FileUIItem(d, false, false);
-            }
+            case FolderUIData:
+              {
+                child = FolderUIItem(d as FolderUIData);
+              }
+            case FileUIData:
+              {
+                child = FileUIItem(d as FileUIData, false, false);
+              }
           }
 
           return GestureDetector(
@@ -85,7 +85,7 @@ class _FileListPageState extends State<FileListPage> {
               _onFolderClick(d.originalPath)
             },
             // child: Text('$kongge + ${d.name}'),
-            child: child,
+            child: Container(width: double.infinity, child: child),
           );
 
           return Text('$kongge + ${d.name}');
@@ -132,7 +132,6 @@ class _FileListPageState extends State<FileListPage> {
     logger.d('swithun-xxxx iParsePath ${directories.length}');
     return directories;
   }
-
 
   _copyFileUrlToClipboard(FileData file) {
     var logger = Logger();
@@ -188,7 +187,6 @@ class _FileListPageState extends State<FileListPage> {
               await _getChildFileList(path as FolderData);
             }
           }
-
         }
       case FileData:
         {
