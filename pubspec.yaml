@@ -28,6 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  # video-player
+  video_player: ^2.8.1
   # 数据库
   hive: ^2.0.4
   hive_flutter: ^1.1.0
