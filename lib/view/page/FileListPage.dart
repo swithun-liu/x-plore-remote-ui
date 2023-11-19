@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:fluent_ui/fluent_ui.dart';
@@ -13,13 +14,14 @@ import '../../model/Directory.dart';
 import '../../model/Path.dart';
 
 class FileListPage extends StatefulWidget {
-  const FileListPage({super.key});
+  final Function(String) updateVideoSource;
+  const FileListPage(this.updateVideoSource, {super.key});
 
   @override
   State<FileListPage> createState() => _FileListPageState();
 }
 
-class _FileListPageState extends State<FileListPage> {
+class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClientMixin {
   FolderData root = FolderData("root", 0, "-", 0, isOpen: false);
   List<DirectoryUIData> directories = [];
   var logger = Logger();
@@ -57,11 +59,11 @@ class _FileListPageState extends State<FileListPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return ListView.builder(
         itemCount: directories.length,
         itemBuilder: (context, index) {
           var d = directories[index];
-          var kongge = ' ' * (d.level * 2);
 
           Widget child = const Text("unknown");
           switch (d.runtimeType) {
@@ -87,8 +89,6 @@ class _FileListPageState extends State<FileListPage> {
             // child: Text('$kongge + ${d.name}'),
             child: Container(width: double.infinity, child: child),
           );
-
-          return Text('$kongge + ${d.name}');
         });
   }
 
@@ -140,6 +140,7 @@ class _FileListPageState extends State<FileListPage> {
     var url = uri.toString();
     logger.d('swithun-xxxx $url');
     Clipboard.setData(ClipboardData(text: url));
+    widget.updateVideoSource(url);
     displayInfoBar(context, builder: (context, close) {
       return const fluent.InfoBar(title: Text('已复制'));
     });
@@ -294,4 +295,7 @@ class _FileListPageState extends State<FileListPage> {
       root = newRoot;
     });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

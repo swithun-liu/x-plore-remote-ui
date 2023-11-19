@@ -4,9 +4,11 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
+import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/view/page/FileListPage.dart';
 import 'package:x_plore_remote_ui/view/page/HistoryPage.dart';
 import 'package:x_plore_remote_ui/view/page/SettingPage.dart';
+import 'package:x_plore_remote_ui/view/page/VideoPage.dart';
 
 import '../../model/Path.dart';
 
@@ -25,6 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
   FolderData root = FolderData("root", 0, "/", -1, isOpen: false);
   int topIndex = 0;
   List<String> history = [];
+  VideoSource? videoSource;
 
   late final Box settingBox;
 
@@ -51,6 +54,12 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+  void updateVideoSource(String url) {
+    setState(() {
+      videoSource = HTTPVideoSource(url);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     List<NavigationPaneItem> items = [
@@ -58,7 +67,12 @@ class _MyHomePageState extends State<MyHomePage> {
         icon: const Icon(Icons.home),
         title: const Text('主页'),
         // body: _NavigationBodyItem(),
-        body: FileListPage(),
+        body: FileListPage(updateVideoSource),
+      ),
+      PaneItem(
+        icon: const Icon(Icons.video_call),
+        title: const Text('播放'),
+        body: VideoPage(videoSource),
       ),
       PaneItem(
         icon: const Icon(Icons.settings),
@@ -72,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       PaneItemSeparator(),
     ];
+
 
     return NavigationView(
       appBar: const NavigationAppBar(
