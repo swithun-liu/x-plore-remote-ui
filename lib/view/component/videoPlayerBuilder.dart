@@ -1,91 +1,32 @@
 import 'dart:ui';
 
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
-import 'package:x_plore_remote_ui/model/VideoSource.dart';
 
-class VideoPage extends StatefulWidget {
-  VideoSource? videoSource;
-  bool Function() getIsFullScreen;
-  void Function(bool isfull) changeFullScreen;
+class SwithunVideoPlayer extends StatefulWidget {
 
-  VideoPage(this.videoSource, this.getIsFullScreen, this.changeFullScreen, {super.key});
+  VideoPlayerController Function() getVideoController;
+
+
+  SwithunVideoPlayer(this.getVideoController, {super.key});
 
   @override
-  State<VideoPage> createState() => _VideoPageState();
+  State<SwithunVideoPlayer> createState() => _SwithunVideoPlayerState();
 }
 
-class _VideoPageState extends State<VideoPage>
-    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
+class _SwithunVideoPlayerState extends State<SwithunVideoPlayer> {
+
   late VideoPlayerController _controller;
-  Logger logger = Logger();
   late AnimationController _videoControllerAnimCtrl;
   bool isVideoControllerIsShowing = false;
   double _slideValue = 0.0;
 
   @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(''))
-      ..initialize().then((_) => {setState(() {})});
-    _videoControllerAnimCtrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 200));
-    _initializeController();
-  }
-
-  @override
-  void didUpdateWidget(covariant VideoPage oldWidget) {
-    logger.d('didUpdateWidget');
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.videoSource != widget.videoSource) {
-      _controller?.dispose();
-      _initializeController();
-    }
-  }
-
-  // Initialize video controller
-  void _initializeController() {
-    VideoSource? vs = widget.videoSource;
-    if (vs != null) {
-      switch (vs.runtimeType) {
-        case HTTPVideoSource:
-          {
-            HTTPVideoSource httpVS = vs as HTTPVideoSource;
-            _controller =
-                VideoPlayerController.networkUrl(Uri.parse(httpVS.url))
-                  ..initialize().then((_) => {setState(() {})});
-            _controller!.addListener(() {
-              logger.d("Video playback video: ${_controller!.value}");
-              if (_controller!.value.hasError) {
-                // Handle video playback error
-                logger.d(
-                    "Video playback error: ${_controller!.value.errorDescription}");
-              } else {
-                setState(() {
-                  _slideValue = _controller.value.position.inSeconds.toDouble();
-                });
-              }
-            });
-          }
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    super.build(context);
-    return Center(
-        child: ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-          color: Colors.yellow,
-          child: Hero(tag: 'swithunVideo', child: buildVideoPlayer())),
-    ));
+    return buildVideoPlayer(widget.getVideoController());
   }
 
-  Widget buildVideoPlayer() {
-    VideoPlayerController? controller = _controller;
+  Widget buildVideoPlayer(VideoPlayerController controller) {
     Widget videoPlayer;
     videoPlayer = AspectRatio(
       aspectRatio: controller.value.aspectRatio,
@@ -142,24 +83,15 @@ class _VideoPageState extends State<VideoPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              GestureDetector(
-                onTap: () {
-                  if (widget.getIsFullScreen()) {
-                    widget.changeFullScreen(false);
-                  } else {
-                    widget.changeFullScreen(true);
-                  }
-                },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      child: Icon(
-                        widget.getIsFullScreen() ? FluentIcons.back_to_window : FluentIcons.full_screen,
-                        color: Colors.white,
-                      ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    child: const Icon(
+                      FluentIcons.full_screen,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -205,12 +137,4 @@ class _VideoPageState extends State<VideoPage>
       ),
     );
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _controller?.dispose();
-  }
-
-  bool get wantKeepAlive => true;
 }

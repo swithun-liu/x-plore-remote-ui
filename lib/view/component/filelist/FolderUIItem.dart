@@ -95,8 +95,8 @@ class _FolderUIItemState extends State<FolderUIItem>
         ),
         Expanded(
           child: Container(
-            margin: EdgeInsets.all(3),
-            padding: EdgeInsets.all(5),
+            margin: const EdgeInsets.all(3),
+            padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
                 color: Colors.grey[30],
                 borderRadius: BorderRadius.circular(5.0),

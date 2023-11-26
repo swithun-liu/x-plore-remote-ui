@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
+import 'package:x_plore_remote_ui/view/component/navigationview/NavigationView.dart';
 import 'package:x_plore_remote_ui/view/page/FileListPage.dart';
 import 'package:x_plore_remote_ui/view/page/HistoryPage.dart';
 import 'package:x_plore_remote_ui/view/page/SettingPage.dart';
@@ -30,6 +29,7 @@ class _MyHomePageState extends State<MyHomePage> {
   VideoSource? videoSource;
 
   late final Box settingBox;
+  bool fullScreeVideo = false;
 
   @override
   void initState() {
@@ -60,46 +60,20 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  bool getIsFullScreen() {
+    return fullScreeVideo;
+  }
+
+  void changeFullScreen(bool isfull) {
+    setState(() {
+      fullScreeVideo = isfull;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<NavigationPaneItem> items = [
-      PaneItem(
-        icon: const Icon(Icons.home),
-        title: const Text('主页'),
-        // body: _NavigationBodyItem(),
-        body: FileListPage(updateVideoSource),
-      ),
-      PaneItem(
-        icon: const Icon(Icons.video_call),
-        title: const Text('播放'),
-        body: VideoPage(videoSource),
-      ),
-      PaneItem(
-        icon: const Icon(Icons.settings),
-        title: const Text('设置'),
-        body: SettingPage(getIP, changeIp),
-      ),
-      PaneItem(
-        icon: const Icon(Icons.history),
-        title: const Text('历史'),
-        body: HistoryPage(history),
-      ),
-      PaneItemSeparator(),
-    ];
-
-
-    return NavigationView(
-      appBar: const NavigationAppBar(
-        title: Text('NavigationView'),
-      ),
-      pane: NavigationPane(
-        selected: topIndex,
-        onChanged: (index) => setState(() => topIndex = index),
-        // displayMode: displayMode,
-        items: items,
-        footerItems: [],
-      ),
-    );
+    return SwithunNavigationView(
+        updateVideoSource, videoSource, getIP, changeIp, history, getIsFullScreen, changeFullScreen);
   }
 
   void changeIp(String newIp) {
@@ -120,5 +94,4 @@ class _MyHomePageState extends State<MyHomePage> {
   void test2() {
     test(getIP);
   }
-
 }

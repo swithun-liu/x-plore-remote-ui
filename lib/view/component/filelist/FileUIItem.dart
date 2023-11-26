@@ -19,6 +19,9 @@ class _FileUIItemState extends State<FileUIItem> {
 
   double iconSize = 14;
 
+  final double chipHeight = 14;
+
+
   @override
   void initState() {
     super.initState();
@@ -32,17 +35,38 @@ class _FileUIItemState extends State<FileUIItem> {
     logger.d("FolderUIItem build ${widget.file.name}");
     return Row(
       children: [
-        SizedBox(
-          width: widget.file.level * iconSize,
+        Container(
+          height: chipHeight,
+          width: widget.file.level * chipHeight,
         ),
-        Icon(
-          FluentIcons.page,
-          size: iconSize,
-        ),
-        Text(
-          widget.file.name,
-          style: TextStyle(color: Colors.black),
-        )
+        Expanded(child: Container(
+          margin: const EdgeInsets.all(3),
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+            color: Colors.grey[10],
+            borderRadius: BorderRadius.circular(5.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey[70],
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: const Offset(0, 0)
+              )
+            ]
+          ),
+          child: Row(
+            children: [
+              Icon(
+                FluentIcons.page,
+                size: iconSize,
+              ),
+              Text(
+                widget.file.name,
+                style: TextStyle(color: Colors.black, fontSize: chipHeight),
+              )
+            ],
+          ),
+        ))
       ],
     );
   }
