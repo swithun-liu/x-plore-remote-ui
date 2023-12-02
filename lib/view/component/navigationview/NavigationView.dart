@@ -1,6 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
+import 'package:x_plore_remote_ui/view/page/PostWallPage.dart';
 
+import '../../../model/Directory.dart';
 import '../../page/FileListPage.dart';
 import '../../page/HistoryPage.dart';
 import '../../page/SettingPage.dart';
@@ -14,9 +16,21 @@ class SwithunNavigationView extends StatefulWidget {
   List<String> history;
   bool Function() getIsFullScreen;
   void Function(bool isfull) changeFullScreen;
+  void Function(FolderUIData directory) setVideoRootPath;
+  String Function() getVideoRootPath;
+  String Function() getIp;
 
-  SwithunNavigationView(this.updateVideoSource, this.videoSource, this.getIP,
-      this.changeIp, this.history, this.getIsFullScreen, this.changeFullScreen,
+  SwithunNavigationView(
+      this.updateVideoSource,
+      this.videoSource,
+      this.getIP,
+      this.changeIp,
+      this.history,
+      this.getIsFullScreen,
+      this.changeFullScreen,
+      this.setVideoRootPath,
+      this.getVideoRootPath,
+      this.getIp,
       {super.key});
 
   @override
@@ -26,6 +40,7 @@ class SwithunNavigationView extends StatefulWidget {
 class _SwithunNavigationViewState extends State<SwithunNavigationView> {
   List<SidebarItemData> sidebarItems = [
     SidebarItemData('fileList', FluentIcons.home),
+    SidebarItemData('PosterWall', FluentIcons.box_play_solid),
     SidebarItemData('video', FluentIcons.video),
     SidebarItemData('setting', FluentIcons.settings),
     SidebarItemData('history', FluentIcons.history)
@@ -62,7 +77,11 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
         children: [
           Container(
               color: Colors.white,
-              child: FileListPage(widget.updateVideoSource)),
+              child: FileListPage(widget.updateVideoSource, widget.setVideoRootPath)),
+          Container(
+              color: Colors.white,
+              child: PostWallPage(widget.getVideoRootPath, widget.getIp),
+          ),
           Container(
               color: Colors.white,
               child: VideoPage(widget.videoSource, widget.getIsFullScreen,
@@ -103,16 +122,16 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
                   width: 30,
                   height: 35,
                   margin:
-                      EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 10),
+                      const EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 10),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(5.0),
                     boxShadow: [
                       BoxShadow(
                           color: Colors.grey[70],
-                          spreadRadius: 4,
-                          blurRadius: 5,
-                          offset: Offset(0, 0))
+                          spreadRadius: 1,
+                          blurRadius: 3,
+                          offset: const Offset(0, 0))
                     ],
                   ),
                   child: Icon(

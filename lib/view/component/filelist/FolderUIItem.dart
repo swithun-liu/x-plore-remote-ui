@@ -5,8 +5,9 @@ import 'package:x_plore_remote_ui/view/component/filelist/FolderUIConfig.dart';
 
 class FolderUIItem extends StatefulWidget {
   FolderUIData directory;
+  void Function(FolderUIData directory) setVideoRootPath;
 
-  FolderUIItem(this.directory, {Key? key}) : super(key: ValueKey(directory));
+  FolderUIItem(this.directory, this.setVideoRootPath, {Key? key}) : super(key: ValueKey(directory));
 
   @override
   State<FolderUIItem> createState() => _FolderUIItemState();
@@ -27,6 +28,7 @@ class _FolderUIItemState extends State<FolderUIItem>
   late Animation<double> _animation;
   var duration = const Duration(milliseconds: 200);
   var halfDuration = const Duration(milliseconds: 100);
+  var flyoutController = FlyoutController();
 
   bool get getIsOpening {
     return widget.directory.isOpen;
@@ -108,21 +110,47 @@ class _FolderUIItemState extends State<FolderUIItem>
                       offset: Offset(0, 0))
                 ]),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AnimatedBuilder(
-                    animation: _animation,
-                    builder: (context, child) {
-                      return AnimatedContainer(
-                          curve: Curves.fastLinearToSlowEaseIn,
-                          duration: duration,
-                          margin: EdgeInsets.only(right: 5),
-                          width: _animation.value,
-                          height: _animation.value,
-                          child: _buildIcon());
-                    }),
-                _buildFolderTitle(TextStyle(
-                  fontSize: animTextSize,
-                ))
+                Row(
+                  children: [
+                    AnimatedBuilder(
+                        animation: _animation,
+                        builder: (context, child) {
+                          return AnimatedContainer(
+                              curve: Curves.fastLinearToSlowEaseIn,
+                              duration: duration,
+                              margin: EdgeInsets.only(right: 5),
+                              width: _animation.value,
+                              height: _animation.value,
+                              child: _buildIcon());
+                        }),
+                    _buildFolderTitle(TextStyle(
+                      fontSize: animTextSize,
+                    ))
+                  ],
+                ),
+                FlyoutTarget(
+                  controller: flyoutController,
+                  child: Button(
+                    child: Icon(FluentIcons.more),
+                    onPressed: () {
+                      flyoutController.showFlyout(builder: (context) {
+                        return MenuFlyout(
+                          items: [
+                            MenuFlyoutItem(
+                                leading: Icon(FluentIcons.video_add),
+                                text: Text('设为影视根目录'),
+                                onPressed: () {
+                                  widget.setVideoRootPath(widget.directory);
+                                  Flyout.of(context).close();
+                                })
+                          ],
+                        );
+                      });
+                    },
+                  ),
+                )
               ],
             ),
           ),

@@ -2,6 +2,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
+import 'package:x_plore_remote_ui/model/Directory.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/view/component/navigationview/NavigationView.dart';
 import 'package:x_plore_remote_ui/view/page/FileListPage.dart';
@@ -73,7 +74,30 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return SwithunNavigationView(
-        updateVideoSource, videoSource, getIP, changeIp, history, getIsFullScreen, changeFullScreen);
+        updateVideoSource,
+        videoSource,
+        getIP,
+        changeIp,
+        history,
+        getIsFullScreen,
+        changeFullScreen,
+        setVideoRootPath,
+        getVideoRootPath,
+        getIp
+    );
+  }
+
+  String getIp() {
+    return settingBox.get("ip");
+  }
+
+  void setVideoRootPath(FolderUIData directory) {
+    String path = directory.path;
+    settingBox.put("video_root", path);
+  }
+
+  String getVideoRootPath() {
+    return settingBox.get("video_root");
   }
 
   void changeIp(String newIp) {

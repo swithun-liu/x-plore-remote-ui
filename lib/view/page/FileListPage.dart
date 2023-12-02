@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 
 import 'package:fluent_ui/fluent_ui.dart';
@@ -15,7 +14,9 @@ import '../../model/Path.dart';
 
 class FileListPage extends StatefulWidget {
   final Function(String) updateVideoSource;
-  const FileListPage(this.updateVideoSource, {super.key});
+  void Function(FolderUIData directory) setVideoRootPath;
+
+  FileListPage(this.updateVideoSource, this.setVideoRootPath, {super.key});
 
   @override
   State<FileListPage> createState() => _FileListPageState();
@@ -69,7 +70,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
           switch (d.runtimeType) {
             case FolderUIData:
               {
-                child = FolderUIItem(d as FolderUIData);
+                child = FolderUIItem(d as FolderUIData, widget.setVideoRootPath);
               }
             case FileUIData:
               {
