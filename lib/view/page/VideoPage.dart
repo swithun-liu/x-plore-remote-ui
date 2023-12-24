@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 
 class VideoPage extends StatefulWidget {
@@ -23,6 +24,7 @@ class _VideoPageState extends State<VideoPage>
   late AnimationController _videoControllerAnimCtrl;
   bool isVideoControllerIsShowing = false;
   double _slideValue = 0.0;
+  bool rememberIsPlaying = false;
 
   @override
   void initState() {
@@ -46,6 +48,7 @@ class _VideoPageState extends State<VideoPage>
 
   // Initialize video controller
   void _initializeController() {
+    Wakelock.disable();
     VideoSource? vs = widget.videoSource;
     if (vs != null) {
       switch (vs.runtimeType) {
@@ -56,7 +59,18 @@ class _VideoPageState extends State<VideoPage>
                 VideoPlayerController.networkUrl(Uri.parse(httpVS.url))
                   ..initialize().then((_) => {setState(() {})});
             _controller!.addListener(() {
-              logger.d("Video playback video: ${_controller!.value}");
+              // 监听是否正在播放
+              var videoIsPlaying = _controller!.value.isPlaying;
+              if (videoIsPlaying && !rememberIsPlaying) {
+                setState(() {
+                  Wakelock.enable();
+                });
+              } else if (!videoIsPlaying && rememberIsPlaying) {
+                setState(() {
+                  Wakelock.disable();
+                });
+              }
+              // 错误监听
               if (_controller!.value.hasError) {
                 // Handle video playback error
                 logger.d(

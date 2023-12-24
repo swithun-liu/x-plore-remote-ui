@@ -3,6 +3,7 @@ import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/view/page/PostWallPage.dart';
 
 import '../../../model/Directory.dart';
+import '../../../model/Path.dart';
 import '../../page/FileListPage.dart';
 import '../../page/HistoryPage.dart';
 import '../../page/SettingPage.dart';
@@ -19,6 +20,7 @@ class SwithunNavigationView extends StatefulWidget {
   void Function(FolderUIData directory) setVideoRootPath;
   String Function() getVideoRootPath;
   String Function() getIp;
+  void Function(FileData file) copyFileUrlToClipboard;
 
   SwithunNavigationView(
       this.updateVideoSource,
@@ -31,6 +33,7 @@ class SwithunNavigationView extends StatefulWidget {
       this.setVideoRootPath,
       this.getVideoRootPath,
       this.getIp,
+      this.copyFileUrlToClipboard,
       {super.key});
 
   @override
@@ -77,13 +80,13 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
         children: [
           Container(
               color: Colors.white,
-              child: FileListPage(widget.updateVideoSource, widget.setVideoRootPath)),
+              child: FileListPage(widget.updateVideoSource, widget.setVideoRootPath, widget.copyFileUrlToClipboard)),
           Container(
               color: Colors.white,
-              child: PostWallPage(widget.getVideoRootPath, widget.getIp),
+              child: PostWallPage(widget.getVideoRootPath, widget.getIp, widget.copyFileUrlToClipboard),
           ),
           Container(
-              color: Colors.white,
+              color: Colors.black,
               child: VideoPage(widget.videoSource, widget.getIsFullScreen,
                   widget.changeFullScreen)),
           Container(

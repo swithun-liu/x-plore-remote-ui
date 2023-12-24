@@ -1,11 +1,9 @@
 import 'dart:convert';
 
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
-import 'package:fluent_ui/fluent_ui.dart' as fluent;
 import 'package:x_plore_remote_ui/view/component/filelist/FileUIItem.dart';
 import 'package:x_plore_remote_ui/view/component/filelist/FolderUIItem.dart';
 
@@ -15,8 +13,9 @@ import '../../model/Path.dart';
 class FileListPage extends StatefulWidget {
   final Function(String) updateVideoSource;
   void Function(FolderUIData directory) setVideoRootPath;
+  void Function(FileData file) copyFileUrlToClipboard;
 
-  FileListPage(this.updateVideoSource, this.setVideoRootPath, {super.key});
+  FileListPage(this.updateVideoSource, this.setVideoRootPath, this.copyFileUrlToClipboard, {super.key});
 
   @override
   State<FileListPage> createState() => _FileListPageState();
@@ -135,28 +134,9 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
   }
 
   _copyFileUrlToClipboard(FileData file) {
-    var logger = Logger();
-
-    var uri = Uri.http('$ip:1111', file.path, {'cmd': 'file'});
-    var url = uri.toString();
-    logger.d('swithun-xxxx $url');
-    Clipboard.setData(ClipboardData(text: url));
-    widget.updateVideoSource(url);
-    displayInfoBar(context, builder: (context, close) {
-      return const fluent.InfoBar(title: Text('已复制'));
-    });
-
-    var newHistory = history;
-    newHistory.add(file.path);
-
-    if (newHistory.length > 30) {
-      newHistory.removeAt(0);
-    }
-
-    settingBox.put('history', newHistory);
+    widget.copyFileUrlToClipboard(file);
 
     setState(() {
-      history = newHistory;
     });
   }
 

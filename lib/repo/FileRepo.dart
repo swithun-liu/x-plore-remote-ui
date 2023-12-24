@@ -50,6 +50,7 @@ class FileRepo {
       }
     }
     logger.d("FileRepo ${children.length}");
+    children.sort((a, b) => a.name.compareTo(b.name));
     parent.children = children;
   }
 

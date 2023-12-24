@@ -1,5 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/model/Directory.dart';
@@ -83,7 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
         changeFullScreen,
         setVideoRootPath,
         getVideoRootPath,
-        getIp
+        getIp,
+        copyVideoLinkAndChangePlaying
     );
   }
 
@@ -113,6 +115,33 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String test(String Function() getIP) {
     return "test";
+  }
+
+
+  void copyVideoLinkAndChangePlaying(FileData file) {
+    var logger = Logger();
+
+    var uri = Uri.http('$ip:1111', file.path, {'cmd': 'file'});
+    var url = uri.toString();
+    logger.d('swithun-xxxx $url');
+    Clipboard.setData(ClipboardData(text: url));
+    updateVideoSource(url);
+    displayInfoBar(context, builder: (context, close) {
+      return const InfoBar(title: Text('已复制'));
+    });
+
+    var newHistory = history;
+    newHistory.add(file.path);
+
+    if (newHistory.length > 30) {
+      newHistory.removeAt(0);
+    }
+
+    settingBox.put('history', newHistory);
+
+    setState(() {
+      history = newHistory;
+    });
   }
 
   void test2() {
