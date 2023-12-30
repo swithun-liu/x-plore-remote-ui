@@ -7,6 +7,7 @@ import '../model/Path.dart';
 
 class FileRepo {
 
+  /// 获取 Folder下层所有文件/不包括文件夹
   getOnlyNextChildren(FolderData parent, String ip) async {
     var logger = Logger();
     var url = Uri.http('$ip:1111', parent.path, {'cmd': 'list'});
@@ -46,7 +47,7 @@ class FileRepo {
         FolderData child = FolderData(name, 0, childPath, childLevel);
         children.add(child);
       } else {
-        children.add(FileData(name, 0, childPath, childLevel));
+        children.add(FileData(name, 0, childPath, childLevel, parent));
       }
     }
     logger.d("FileRepo ${children.length}");
@@ -54,6 +55,7 @@ class FileRepo {
     parent.children = children;
   }
 
+  /// 递归获取下层所有目录
   getChildren(FolderData parent, String ip) async {
     var logger = Logger();
     var url = Uri.http('$ip:1111', parent.path, {'cmd': 'list'});
@@ -94,9 +96,10 @@ class FileRepo {
         await getChildren(child, ip);
         children.add(child);
       } else {
-        children.add(FileData(name, 0, childPath, childLevel));
+        children.add(FileData(name, 0, childPath, childLevel, parent));
       }
     }
+    children.sort((a, b) => a.name.compareTo(b.name));
     logger.d("FileRepo ${children.length}");
     parent.children = children;
   }

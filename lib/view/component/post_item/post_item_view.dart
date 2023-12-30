@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
+import 'package:x_plore_remote_ui/model/VideoSource.dart';
+import 'package:x_plore_remote_ui/util/CommonUtil.dart';
 import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
 import 'package:x_plore_remote_ui/view/component/post_item/post_item_bloc.dart';
 
@@ -14,7 +16,7 @@ class PostItemView extends StatefulWidget {
 
   PostItemUIData post;
   String Function() getIp;
-  void Function(FileData file) copyFileUrlToClipboard;
+  void Function(VideoSource videoSource) copyFileUrlToClipboard;
 
   PostItemView(this.getIp, this.copyFileUrlToClipboard, this.post, {super.key});
 
@@ -26,6 +28,7 @@ class _PostItemViewState extends State<PostItemView> {
 
   Logger logger = Logger();
   FileRepo fileRepo = FileRepo();
+  CommonUtil util = CommonUtil();
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +150,8 @@ class _PostItemViewState extends State<PostItemView> {
   }
 
   _copyFileUrlToClipboard(FileData file) {
-    widget.copyFileUrlToClipboard(file);
+    HTTPVideoSourceGroup videoSource =  util.buildHttpVideoSourceGroup(util.filterVideoFile(file.parent.children), file);
+    widget.copyFileUrlToClipboard(videoSource);
     setState(() {
 
     });

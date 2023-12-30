@@ -22,7 +22,9 @@ abstract class DirectoryData {
 }
 
 class FileData extends DirectoryData {
-  FileData(String name, int size, String path, int level) : super(name, size, path, level);
+  FolderData parent;
+  FileData(String name, int size, String path, int level, this.parent)
+      : super(name, size, path, level);
 }
 
 class FolderData extends DirectoryData {

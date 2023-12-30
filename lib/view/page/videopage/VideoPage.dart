@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:fluent_ui/fluent_ui.dart';
@@ -6,12 +7,24 @@ import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 
-class VideoPage extends StatefulWidget {
-  VideoSource? videoSource;
-  bool Function() getIsFullScreen;
-  void Function(bool isfull) changeFullScreen;
+import 'VideoPageDependency.dart';
 
-  VideoPage(this.videoSource, this.getIsFullScreen, this.changeFullScreen, {super.key});
+class VideoPage extends StatefulWidget {
+  /// 正在播放的视频源
+  VideoSource? videoSource;
+  /// 是否正在全屏播放
+  bool Function() getIsFullScreen;
+  /// 切换是否全屏播放
+  void Function(bool isfull) changeFullScreen;
+  VideoPageDependency dependency;
+
+  VideoPage(
+      this.videoSource,
+      this.getIsFullScreen,
+      this.changeFullScreen,
+      this.dependency,
+      {super.key}
+      );
 
   @override
   State<VideoPage> createState() => _VideoPageState();
@@ -48,16 +61,20 @@ class _VideoPageState extends State<VideoPage>
 
   // Initialize video controller
   void _initializeController() {
+    logger.d('_initializeController');
     Wakelock.disable();
     VideoSource? vs = widget.videoSource;
     if (vs != null) {
       switch (vs.runtimeType) {
+        case HTTPVideoSourceGroup:
         case HTTPVideoSource:
           {
-            HTTPVideoSource httpVS = vs as HTTPVideoSource;
+            logger.d("Video Page VS更新 ${vs.getUrl(widget.dependency.getIp())}");
             _controller =
-                VideoPlayerController.networkUrl(Uri.parse(httpVS.url))
-                  ..initialize().then((_) => {setState(() {})});
+                VideoPlayerController.networkUrl(Uri.parse(vs.getUrl(widget.dependency.getIp())))
+                  ..initialize().then((_) => {setState(() {
+                    stopOrBegin();
+                  })});
             _controller!.addListener(() {
               // 监听是否正在播放
               var videoIsPlaying = _controller!.value.isPlaying;
@@ -76,12 +93,19 @@ class _VideoPageState extends State<VideoPage>
                 logger.d(
                     "Video playback error: ${_controller!.value.errorDescription}");
               } else {
+                if (_controller.value.position.inSeconds == _controller.value.duration.inSeconds) {
+                  sleep(const Duration(seconds: 2));
+                  gotoNext();
+                }
                 setState(() {
                   _slideValue = _controller.value.position.inSeconds.toDouble();
                 });
               }
             });
           }
+        default: {
+          logger.d("Video Page default ${vs.runtimeType}");
+        }
       }
     }
   }
@@ -98,6 +122,7 @@ class _VideoPageState extends State<VideoPage>
     ));
   }
 
+  /// 构建播放器
   Widget buildVideoPlayer() {
     VideoPlayerController? controller = _controller;
     Widget videoPlayer;
@@ -143,12 +168,13 @@ class _VideoPageState extends State<VideoPage>
     return videoPlayer;
   }
 
+  /// 构建播放器控制器
   Widget buildVideoController() {
     var controller = _controller;
     var max = 0.0;
     max = controller.value.duration.inSeconds.toDouble();
     return Container(
-      color: Colors.black.withAlpha((0.3 * 255).toInt()),
+      color: Colors.black.withAlpha((0.0 * 255).toInt()),
       width: double.infinity,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -202,22 +228,61 @@ class _VideoPageState extends State<VideoPage>
                   ),
                 ),
               ),
-              Button(
-                  child: const Icon(FluentIcons.icon_sets_flag),
-                  onPressed: () {
-                    setState(() {
-                      if (_controller?.value.isPlaying == true) {
-                        _controller?.pause();
-                      } else {
-                        _controller?.play();
-                      }
-                    });
-                  })
+              /// 播放/暂停
+              Center(
+                child: Row(
+                  children: [
+                    Button(
+                        onPressed: gotoPrevious,
+                        child: const Icon(FluentIcons.previous)),
+                    Button(
+                        onPressed: stopOrBegin,
+                        child: const Icon(FluentIcons.play)),
+                    Button(
+                        onPressed: gotoNext,
+                        child: const Icon(FluentIcons.next))
+                  ],
+                ),
+              )
             ],
           )
         ],
       ),
     );
+  }
+
+  void gotoNext() {
+    VideoSource? vs = widget.videoSource;
+    if (vs is HTTPVideoSourceGroup) {
+      int length = vs.urls.length;
+      int newPos = vs.pos + 1;
+      if (newPos <= length) {
+        HTTPVideoSourceGroup newVs = HTTPVideoSourceGroup(vs.urls, newPos);
+        widget.dependency.copyFileUrlToClipboard(newVs);
+      }
+    }
+  }
+
+  void gotoPrevious() {
+    VideoSource? vs = widget.videoSource;
+    if (vs is HTTPVideoSourceGroup) {
+      int length = vs.urls.length;
+      int newPos = vs.pos - 1;
+      if (newPos <= length && newPos >= 0) {
+        HTTPVideoSourceGroup newVs = HTTPVideoSourceGroup(vs.urls, newPos);
+        widget.dependency.copyFileUrlToClipboard(newVs);
+      }
+    }
+  }
+
+  void stopOrBegin() {
+    setState(() {
+      if (_controller.value.isPlaying == true) {
+        _controller.pause();
+      } else {
+        _controller.play();
+      }
+    });
   }
 
   @override

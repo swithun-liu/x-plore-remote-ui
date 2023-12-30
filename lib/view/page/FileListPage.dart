@@ -4,6 +4,9 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
+import 'package:x_plore_remote_ui/model/VideoSource.dart';
+import 'package:x_plore_remote_ui/repo/FileRepo.dart';
+import 'package:x_plore_remote_ui/util/CommonUtil.dart';
 import 'package:x_plore_remote_ui/view/component/filelist/FileUIItem.dart';
 import 'package:x_plore_remote_ui/view/component/filelist/FolderUIItem.dart';
 
@@ -13,7 +16,7 @@ import '../../model/Path.dart';
 class FileListPage extends StatefulWidget {
   final Function(String) updateVideoSource;
   void Function(FolderUIData directory) setVideoRootPath;
-  void Function(FileData file) copyFileUrlToClipboard;
+  void Function(VideoSource videoSource) copyFileUrlToClipboard;
 
   FileListPage(this.updateVideoSource, this.setVideoRootPath, this.copyFileUrlToClipboard, {super.key});
 
@@ -34,6 +37,8 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
   List<String> history = [];
 
   Set<String> lastStateOpeningFolder = {};
+  CommonUtil util = CommonUtil();
+  FileRepo repo = FileRepo();
 
   @override
   void initState() {
@@ -133,7 +138,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
     return directories;
   }
 
-  _copyFileUrlToClipboard(FileData file) {
+  _copyFileUrlToClipboard(VideoSource file) {
     widget.copyFileUrlToClipboard(file);
 
     setState(() {
@@ -172,7 +177,10 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
         }
       case FileData:
         {
-          _copyFileUrlToClipboard(path as FileData);
+          FileData file = path as FileData;
+          List<FileData> fileChildren = util.filterVideoFile(file.parent.children);
+          HTTPVideoSourceGroup videoSource = util.buildHttpVideoSourceGroup(fileChildren, file);
+          _copyFileUrlToClipboard(videoSource);
         }
     }
 
@@ -216,20 +224,21 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
     var files = json['files'];
     logger.d(files);
     // 如果有 has_children 字段，就是文件夹，否则就是文件，拼成FolderItem和FileItem
-    List<DirectoryData> pathList = [];
+    List<DirectoryData> children = [];
     for (var file in files) {
       var hasChildren = file['has_children'];
       var name = file['n'];
       var size = file['size'];
       var path = parent + '/' + name;
       if (hasChildren != null) {
-        pathList.add(FolderData(name, 0, path, folder.level + 1));
+        children.add(FolderData(name, 0, path, folder.level + 1));
       } else {
-        pathList.add(FileData(name, 0, path, folder.level + 1));
+        children.add(FileData(name, 0, path, folder.level + 1, folder));
       }
     }
+    children.sort((a, b) => a.name.compareTo(b.name));
     var newFolder = folder;
-    newFolder.children = pathList;
+    newFolder.children = children;
 
     setState(() {
       folder = newFolder;

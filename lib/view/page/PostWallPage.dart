@@ -4,6 +4,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/model/Path.dart';
+import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
 import 'package:x_plore_remote_ui/repo/FileRepo.dart';
 import 'package:x_plore_remote_ui/view/component/post_item/post_item_view.dart';
@@ -11,7 +12,7 @@ import 'package:x_plore_remote_ui/view/component/post_item/post_item_view.dart';
 class PostWallPage extends StatefulWidget {
   String Function() getVideoRootPath;
   String Function() getIp;
-  void Function(FileData file) copyFileUrlToClipboard;
+  void Function(VideoSource videoSource) copyFileUrlToClipboard;
 
   PostWallPage(
       this.getVideoRootPath,

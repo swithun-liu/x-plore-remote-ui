@@ -9,7 +9,7 @@ import 'package:x_plore_remote_ui/view/component/navigationview/NavigationView.d
 import 'package:x_plore_remote_ui/view/page/FileListPage.dart';
 import 'package:x_plore_remote_ui/view/page/HistoryPage.dart';
 import 'package:x_plore_remote_ui/view/page/SettingPage.dart';
-import 'package:x_plore_remote_ui/view/page/VideoPage.dart';
+import 'package:x_plore_remote_ui/view/page/videopage/VideoPage.dart';
 
 import '../../model/Path.dart';
 
@@ -62,6 +62,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void updateVideoSourceV2(VideoSource newVideoSource) {
+    setState(() {
+      videoSource = newVideoSource;
+    });
+  }
+
   bool getIsFullScreen() {
     return fullScreeVideo;
   }
@@ -85,8 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
         setVideoRootPath,
         getVideoRootPath,
         getIp,
-        copyVideoLinkAndChangePlaying
-    );
+        copyVideoLinkAndChangePlaying);
   }
 
   String getIp() {
@@ -117,8 +122,34 @@ class _MyHomePageState extends State<MyHomePage> {
     return "test";
   }
 
+  void copyVideoLinkAndChangePlaying(VideoSource videoSource) {
+    // 复制
+    String url = videoSource.getUrl(ip);
+    Clipboard.setData(ClipboardData(text: url));
+    // 复制提示
+    displayInfoBar(context, builder: (context, close) {
+      return InfoBar(title: Text('已复制 $url'));
+    });
 
-  void copyVideoLinkAndChangePlaying(FileData file) {
+    // 修改播放源
+    updateVideoSourceV2(videoSource);
+
+    // 播放记录
+    var newHistory = history;
+    newHistory.add(url);
+
+    if (newHistory.length > 30) {
+      newHistory.removeAt(0);
+    }
+
+    settingBox.put('history', newHistory);
+
+    setState(() {
+      history = newHistory;
+    });
+  }
+
+  void copyVideoLinkAndChangePlayingOld(FileData file) {
     var logger = Logger();
 
     var uri = Uri.http('$ip:1111', file.path, {'cmd': 'file'});
