@@ -48,6 +48,7 @@ class MainActivity : FlutterActivity() {
             val ac = AuthenticationContext("Guest", CharArray(0), "")
             connection.authenticate(ac)?.let { session ->
                 session.connectShare("share")?.let { share ->
+                    Log.d("swithun-xxxx", "share smbpath: ${share.smbPath}")
                     (share as? DiskShare)?.let { diskShare ->
                         diskShare.list(parent).forEach {
                             Log.d("swithun-xxxx", "folder($parent): ${it.fileName}")
