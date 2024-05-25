@@ -6,6 +6,8 @@ import 'package:logger/logger.dart';
 import 'package:http/http.dart' as http;
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/repo/FileRepo.dart';
+import 'package:x_plore_remote_ui/repo/v2/IFileRepo.dart';
+import 'package:x_plore_remote_ui/repo/v2/SmbaFileRepo.dart';
 import 'package:x_plore_remote_ui/util/CommonUtil.dart';
 import 'package:x_plore_remote_ui/view/component/filelist/FileUIItem.dart';
 import 'package:x_plore_remote_ui/view/component/filelist/FolderUIItem.dart';
@@ -29,6 +31,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
   List<DirectoryUIData> directories = [];
   var logger = Logger();
   String ip = '192.168.31.249';
+  IFileRepo repoV2 = SmbFileRepo();
 
   int pos = -1;
   int lastPos = -1;
@@ -43,6 +46,8 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
   @override
   void initState() {
     super.initState();
+
+    repoV2.getDirectory();
 
     settingBox = Hive.box("setting");
     var ip = settingBox.get("ip");

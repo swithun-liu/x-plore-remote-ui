@@ -341,6 +341,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  samba_browser:
+    dependency: "direct main"
+    description:
+      name: samba_browser
+      sha256: ae52a891f4d223a7dad041689fea647a3315ca1ffda3fe9b90ab1b59f1916f42
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   scroll_pos:
     dependency: transitive
     description:
