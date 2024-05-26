@@ -36,7 +36,7 @@ class FileRepo {
         }*/
     var files = json['files'];
     // 如果有 has_children 字段，就是文件夹，否则就是文件，拼成FolderItem和FileItem
-    List<DirectoryData> children = [];
+    List<PathData> children = [];
     for (var file in files) {
       var hasChildren = file['has_children'];
       var name = file['n'];
@@ -84,7 +84,7 @@ class FileRepo {
         }*/
     var files = json['files'];
     // 如果有 has_children 字段，就是文件夹，否则就是文件，拼成FolderItem和FileItem
-    List<DirectoryData> children = [];
+    List<PathData> children = [];
     for (var file in files) {
       var hasChildren = file['has_children'];
       var name = file['n'];

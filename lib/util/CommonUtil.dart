@@ -6,7 +6,7 @@ class CommonUtil {
     return path.endsWith('mp4') || path.endsWith("mkv");
   }
 
-  List<FileData> filterVideoFile(List<DirectoryData> children) {
+  List<FileData> filterVideoFile(List<PathData> children) {
     List<FileData> files = [];
     children.forEach((child) {
       if (child is FileData && isVideo(child.path)) {

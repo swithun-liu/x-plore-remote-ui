@@ -1,11 +1,11 @@
 // 接口Path，两个实现类 File 和 Folder
-abstract class DirectoryData {
+abstract class PathData {
   String name;
   int size;
   String path;
   int level;
 
-  DirectoryData(this.name, this.size, this.path, this.level);
+  PathData(this.name, this.size, this.path, this.level);
 
   String getPath() {
     return path;
@@ -21,15 +21,15 @@ abstract class DirectoryData {
 
 }
 
-class FileData extends DirectoryData {
+class FileData extends PathData {
   FolderData parent;
   FileData(String name, int size, String path, int level, this.parent)
       : super(name, size, path, level);
 }
 
-class FolderData extends DirectoryData {
+class FolderData extends PathData {
   bool isOpen = false;
-  List<DirectoryData> children = [];
+  List<PathData> children = [];
 
   FolderData(String name, int size, String path, int leve,
       {this.isOpen = false})

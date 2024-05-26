@@ -14,31 +14,20 @@ class SmbFileRepo implements IFileRepo {
   }
 
   @override
-  List<DirectoryData> getDirectory() {
-    // SambaBrowser.getShareList('smb://192.168.31.36/', '', 'Guest', '')
-    // .then((shares) => logger.d('[SmbFileRepo] [getDirectory] ${shares.cast<String>()}'))
-    // ;
+  Future<List<PathData>> getPaths(String parent, int level) async {
+    String parentPath = "";
+    if (parent != '-') {
+      parentPath = parent;
+    }
 
-    SMBChannel.testChannel().then((value) => {
-      logger.d("[testChannel] $value")
-    });
+    List<Object?> paths = await SMBChannel.getPathList(parent);
+    logger.d("[getPathList] $paths}");
 
-    SMBChannel.getPathList("").then((value) => {
-      value.forEach ( (path) {
-        logger.d("[getPathList] $path}");
-      }
-      )
-    });
+    List<PathData> pathDatas = paths.map((path)=>
+      FolderData(path as String, 0, "$parent\\$path", level +1)
+    ).toList();
 
-    SMBChannel.getPathList("transer/").then((value) => {
-      value.forEach ( (path) {
-        logger.d("[getPathList] $path}");
-      }
-      )
-    });
-
-
-    return [];
+    return pathDatas;
   }
 
 }

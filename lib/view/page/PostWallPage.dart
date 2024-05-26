@@ -66,7 +66,7 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
         // 视频文件夹
         if (child.name.startsWith('vd_')) {
 
-          DirectoryData? thumbnailVideoChild = null;
+          PathData? thumbnailVideoChild = null;
 
           try {
             thumbnailVideoChild = current.children.firstWhere((element) {

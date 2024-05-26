@@ -5,7 +5,7 @@ import 'package:fluent_ui/fluent_ui.dart' as fluent;
 
 import 'ColorBgContainer.dart';
 
-Widget buildPathItem(DirectoryData path, Function(FolderData folder) onFolderClick, Function(FileData file) onFileClick) {
+Widget buildPathItem(PathData path, Function(FolderData folder) onFolderClick, Function(FileData file) onFileClick) {
   // 当Path是File，和当Path是Folder，做不同的处理
   Widget child;
   if (path is FileData) {

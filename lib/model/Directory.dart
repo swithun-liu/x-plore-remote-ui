@@ -5,7 +5,7 @@ class DirectoryUIData {
   String path;
   String name;
   int level;
-  DirectoryData originalPath;
+  PathData originalPath;
 
   DirectoryUIData(this.type, this.path, this.name, this.level, this.originalPath);
 }

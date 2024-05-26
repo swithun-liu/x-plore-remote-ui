@@ -47,7 +47,6 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
   void initState() {
     super.initState();
 
-    repoV2.getDirectory();
 
     settingBox = Hive.box("setting");
     var ip = settingBox.get("ip");
@@ -109,7 +108,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
   }
 
   List<DirectoryUIData> iParsePath(
-      List<DirectoryUIData> directories, DirectoryData parent, int level) {
+      List<DirectoryUIData> directories, PathData parent, int level) {
     switch (parent.runtimeType) {
       case FolderData:
         {
@@ -150,7 +149,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
     });
   }
 
-  _onFolderClick(DirectoryData path) async {
+  _onFolderClick(PathData path) async {
     lastStateOpeningFolder = directories
         .where((element) {
           bool result = false;
@@ -174,9 +173,9 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
           } else {
             folder.isOpen = true;
             if (path.path == '-') {
-              await _getBaseFileList();
+              await _getBaseFileList_V2();
             } else {
-              await _getChildFileList(path as FolderData);
+              await _getChildFileList_V2(path as FolderData);
             }
           }
         }
@@ -192,6 +191,15 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
     setState(() {
       directories = parseFileList();
       logger.d("directories: ${directories.map((e) => e.path)}");
+    });
+  }
+
+  _getChildFileList_V2(FolderData folder) async {
+    var newFolder = folder;
+    newFolder.children = await repoV2.getPaths(folder.path, folder.level);
+
+    setState(() {
+      folder = newFolder;
     });
   }
 
@@ -229,7 +237,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
     var files = json['files'];
     logger.d(files);
     // 如果有 has_children 字段，就是文件夹，否则就是文件，拼成FolderItem和FileItem
-    List<DirectoryData> children = [];
+    List<PathData> children = [];
     for (var file in files) {
       var hasChildren = file['has_children'];
       var name = file['n'];
@@ -247,6 +255,14 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
 
     setState(() {
       folder = newFolder;
+    });
+  }
+
+  _getBaseFileList_V2() async {
+    var newRoot = root;
+    newRoot.children = await repoV2.getPaths("", root.level);
+    setState(() {
+      root = newRoot;
     });
   }
 
@@ -272,7 +288,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
     logger.d(files);
     // 取出 lable 是名字，组成list
     List<String> list = [];
-    List<DirectoryData> pathList = [];
+    List<PathData> pathList = [];
     for (var file in files) {
       var label = file['label'];
       var mount = file['mount'];
