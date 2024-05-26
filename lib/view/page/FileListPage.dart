@@ -173,7 +173,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
             if (path.path == root.path) {
               await  _getChildFileList_V2(root);
             } else {
-              await _getChildFileList_V2(path as FolderData);
+              await _getChildFileList_V2(path);
             }
           }
         }
