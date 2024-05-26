@@ -25,16 +25,16 @@ class SMBToHTTPServer: NanoHTTPD(8080) {
         }
 
         return try {
-            val fileStream = getFileStream(filePath)
+            val (fileStream, length) = getFileStream(filePath)
             val mimeType = getMimeType(filePath)
-            newChunkedResponse(Response.Status.OK, mimeType, fileStream)
+            newFixedLengthResponse(Response.Status.OK, mimeType, fileStream, length)
         } catch (e: Exception) {
             e.printStackTrace()
             newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error accessing SMB file")
         }
     }
 
-    private fun getFileStream(filePath: String): InputStream {
+    private fun getFileStream(filePath: String): Pair<InputStream, Long> {
         Log.d(TAG, "getFileStream $filePath")
         val client = SMBClient()
         val connection = client.connect("192.168.31.36")
@@ -42,7 +42,8 @@ class SMBToHTTPServer: NanoHTTPD(8080) {
         val session: Session = connection.authenticate(ac)
         val share: DiskShare = session.connectShare("share") as DiskShare
         val file = share.openFile(filePath, EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null)
-        return file.inputStream
+        val size = file.fileInformation.standardInformation.endOfFile
+        return file.inputStream to size
     }
 
     private fun getMimeType(filePath: String): String {
