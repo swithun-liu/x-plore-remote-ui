@@ -45,13 +45,19 @@ class _CoverItemState extends State<CoverItem> {
 
   @override
   Widget build(BuildContext context) {
-    var u = _thumbnailBytes;
-    return u == null
-        ? const Icon(Icons.local_movies, size: 100,)
-        : Image.memory(
-            u,
-            fit: BoxFit.fitHeight,
-            height: double.infinity,
-          );
+    return Image.network(
+      widget.folderPath.thumbnailVideoUrl.toString(),
+      fit: BoxFit.fitHeight,
+      height: double.infinity,
+    );
   }
+  //   var u = _thumbnailBytes;
+  //   return u == null
+  //       ? const Icon(Icons.local_movies, size: 100,)
+  //       : Image.network(
+  //           widget.folderPath.thumbnailVideoUrl.toString(),
+  //           fit: BoxFit.fitHeight,
+  //           height: double.infinity,
+  //         );
+  // }
 }

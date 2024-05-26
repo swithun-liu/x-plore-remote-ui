@@ -1,8 +1,10 @@
+import 'dart:ffi';
 import 'dart:ui';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
-import 'package:logger/logger.dart';
+import 'package:logger/logger.dart' as SysLogger;
+import 'package:tmdb_api/tmdb_api.dart';
 import 'package:x_plore_remote_ui/model/Path.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/repo/v2/IFileRepo.dart';
@@ -29,7 +31,7 @@ class PostWallPage extends StatefulWidget {
 }
 
 class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClientMixin{
-  Logger logger = Logger();
+  SysLogger.Logger logger = SysLogger.Logger();
   List<PostItemUIData> posts = [];
 
   FileRepo fileRepo = FileRepo();
@@ -67,9 +69,11 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
     var mediaInfoMap = Map<String, List<MediaInfo>>();
     await iParsePostItemsV2(root, posts, mediaInfoMap);
     logger.d("[refreshDataV2] postwallpage posts ${posts.length} ${mediaInfoMap.keys} ${mediaInfoMap.keys.length}");
-    mediaInfoMap.forEach((key, infos) {
-      posts.add(PostItemUIData(key, key, null));
-    });
+    for (var key in mediaInfoMap.keys) {
+      var rul = await testScrap(key, mediaInfoMap[key]![0].isMovie);
+      var uri = Uri.parse("https://image.tmdb.org/t/p/w500$rul");
+      posts.add(PostItemUIData(key, key, uri));
+    }
 
     setState(() { });
   }
@@ -77,6 +81,37 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
   @override
   Widget build(BuildContext context) {
     return wallPage();
+  }
+
+  var tmdbWithCustomLogs = TMDB(
+      ApiKeys('31e942957a41df2217cc2eaeb960c4b0', 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzMWU5NDI5NTdhNDFkZjIyMTdjYzJlYWViOTYwYzRiMCIsInN1YiI6IjY1NmFlNGUwODg2MzQ4MDE0ZDgzYzM5YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.2oVrbs0i6kNCr_dlT09-dB1n6TLrIavyGdcFfery1I8'),
+      logConfig: const ConfigLogger(
+          showLogs: true,
+          showErrorLogs: true
+      )
+  );
+
+  Future<String> testScrap(String name, bool isMove) async {
+    var url = "";
+
+    try {
+      var result = await tmdbWithCustomLogs.v3.search.queryMovies(name);
+      var innerResult = result['results'];
+      if (innerResult == null) {
+        return "";
+      }
+      var firstResult = innerResult[0];
+      if (firstResult == null) {
+        return "";
+      }
+
+      url = firstResult['poster_path'];
+      logger.d("[TMDB] result $url");
+    } catch (exception) {
+      logger.d("[TMDB] result err $exception");
+    }
+
+    return url;
   }
 
   Future<void> iParsePostItemsV2(FolderData current, List<PostItemUIData> posts, Map<String, List<MediaInfo>> mediaInfoMap) async {
