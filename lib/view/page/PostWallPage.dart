@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/model/Path.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
+import 'package:x_plore_remote_ui/repo/v2/IFileRepo.dart';
+import 'package:x_plore_remote_ui/repo/v2/SmbaFileRepo.dart';
+import 'package:x_plore_remote_ui/util/MovieNameMatcher.dart';
 import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
 import 'package:x_plore_remote_ui/repo/FileRepo.dart';
 import 'package:x_plore_remote_ui/view/component/post_item/post_item_view.dart';
@@ -30,13 +33,14 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
   List<PostItemUIData> posts = [];
 
   FileRepo fileRepo = FileRepo();
+  IFileRepo repoV2 = SmbFileRepo();
   FolderData root = FolderData('', 0, '', 0);
 
 
   @override
   void initState() {
     super.initState();
-    refreshData();
+    refreshDataV2();
   }
 
   void refreshData() async {
@@ -54,9 +58,44 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
     setState(() { });
   }
 
+  void refreshDataV2() async {
+    posts = [];
+    logger.d("[refreshDataV2] posts ${posts.length}");
+    FolderData root = FolderData("", 0, "" ,0);
+    var children = await repoV2.getPaths(root, root.level);
+    root.children = children;
+    var mediaInfoMap = Map<String, List<MediaInfo>>();
+    await iParsePostItemsV2(root, posts, mediaInfoMap);
+    logger.d("[refreshDataV2] postwallpage posts ${posts.length} ${mediaInfoMap.keys}");
+    setState(() { });
+  }
+
   @override
   Widget build(BuildContext context) {
     return wallPage();
+  }
+
+  Future<void> iParsePostItemsV2(FolderData current, List<PostItemUIData> posts, Map<String, List<MediaInfo>> mediaInfoMap) async {
+    for (var c in current.children) {
+      if (c.runtimeType == FileData) {
+        var child = c as FileData;
+        logger.d("[refreshDataV2]: file ${child.path}");
+        var mediaInfo = extractMediaInfo(child.name);
+        var oldMediaInfoList = mediaInfoMap[mediaInfo.name];
+        if (oldMediaInfoList == null) {
+          var newMediaInfoList = [ mediaInfo ];
+          mediaInfoMap[mediaInfo.name] = newMediaInfoList;
+        } else {
+          oldMediaInfoList.add(mediaInfo);
+        }
+      } else if (c.runtimeType == FolderData) {
+        var child = c as FolderData;
+        logger.d("[refreshDataV2]: folder ${child.path}");
+        var childChildren = await repoV2.getPaths(child, child.level);
+        child.children = childChildren;
+        iParsePostItemsV2(child, posts, mediaInfoMap);
+      }
+    }
   }
 
   void iParsePostItems(FolderData current, List<PostItemUIData> posts) {
