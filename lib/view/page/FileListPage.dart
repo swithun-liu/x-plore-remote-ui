@@ -256,14 +256,6 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
     });
   }
 
-  _getBaseFileList_V2() async {
-    var newRoot = root;
-    newRoot.children = await repoV2.getPaths(root, root.level);
-    setState(() {
-      root = newRoot;
-    });
-  }
-
   _getBaseFileList() async {
     var logger = Logger();
     logger.d("_getBaseFileList");
