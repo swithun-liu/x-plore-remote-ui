@@ -25,11 +25,31 @@ class SMBToHTTPServer: NanoHTTPD(8080) {
         }
 
         return try {
-            val (fileStream, length) = getFileStream(filePath)
+            val bufferSize = 10 * 1024 // 设置合适的缓冲区大小
+            val rangeHeader = session.headers["range"]
+            val (fileStream, fileSize) = getFileStream(filePath)
             val mimeType = getMimeType(filePath)
-            newFixedLengthResponse(Response.Status.OK, mimeType, fileStream, length)
+
+            if (rangeHeader == null) {
+                newFixedLengthResponse(Response.Status.OK, mimeType, fileStream, fileSize)
+            } else {
+                val range = rangeHeader.substring("bytes=".length).split("-")
+                val start = range[0].toLong()
+                val end = if (range.size > 1 && range[1].isNotEmpty()) range[1].toLong() else fileSize - 1
+                Log.d(TAG, "range: start: $start | ranger[1]: ${range[1]} | end: $end| fileSize: $fileSize")
+                val contentLength = end - start + 1
+
+                fileStream.skip(start)
+                val partialStream = fileStream.buffered(bufferSize)
+                newFixedLengthResponse(Response.Status.PARTIAL_CONTENT, mimeType, partialStream, contentLength).apply {
+                    addHeader("Content-Range", "bytes $start-$end/$fileSize")
+                    addHeader("Content-Length", contentLength.toString())
+                    addHeader("Accept-Ranges", "bytes")
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e(TAG, "serve err: ${e.message}")
             newFixedLengthResponse(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "Error accessing SMB file")
         }
     }
