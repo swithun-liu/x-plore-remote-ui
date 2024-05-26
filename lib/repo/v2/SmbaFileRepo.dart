@@ -21,7 +21,7 @@ class SmbFileRepo implements IFileRepo {
     logger.d("[getPathList] $paths}");
 
     List<PathData> pathDatas = paths.mapNotNull((childName) {
-      var childPath = "${parent.path}\\$childName";
+      var childPath = "${parent.path}/$childName";
       if (childName == "." || childName == "..") {
         return null;
       } else if (FileUtil.isFile(childName as String)) {

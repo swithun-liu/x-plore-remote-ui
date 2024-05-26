@@ -170,14 +170,19 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
             folder.isOpen = false;
           } else {
             folder.isOpen = true;
-            await _getChildFileList(path);
+            if (path.path == root.path) {
+              await  _getChildFileList_V2(root);
+            } else {
+              await _getChildFileList_V2(path);
+            }
           }
         }
       case FileData:
         {
           FileData file = path as FileData;
           List<FileData> fileChildren = util.filterVideoFile(file.parent.children);
-          HTTPVideoSourceGroup videoSource = util.buildHttpVideoSourceGroup(fileChildren, file);
+          // HTTPVideoSourceGroup videoSource = util.buildHttpVideoSourceGroup(fileChildren, file);
+          var videoSource = util.buildV2HttpVideoSource(file);
           _copyFileUrlToClipboard(videoSource);
         }
     }

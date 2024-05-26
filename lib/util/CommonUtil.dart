@@ -1,7 +1,11 @@
+import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/model/Path.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 
 class CommonUtil {
+
+  var logger = Logger();
+
   bool isVideo(String path) {
     return path.endsWith('mp4') || path.endsWith("mkv");
   }
@@ -31,5 +35,14 @@ class CommonUtil {
 
     return HTTPVideoSourceGroup(urls, pos);
   }
+
+  HTTPVideoSource buildV2HttpVideoSource(FileData file) {
+
+    var path = "http://localhost:8080/?path=${file.path}";
+    logger.d("[CommonUtil] [buildV2HttpVideoSource] $path");
+
+    return HTTPVideoSource(path);
+  }
+
 
 }
