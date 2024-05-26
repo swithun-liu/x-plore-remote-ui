@@ -87,7 +87,6 @@ class _FolderUIItemState extends State<FolderUIItem>
 
   @override
   Widget build(BuildContext context) {
-    logger.d("FolderUIItem build ${widget.directory.name}");
 
     return Row(
       children: [

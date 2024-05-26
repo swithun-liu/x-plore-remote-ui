@@ -32,7 +32,6 @@ class _FileUIItemState extends State<FileUIItem> {
 
   @override
   Widget build(BuildContext context) {
-    logger.d("FolderUIItem build ${widget.file.name}");
     return Row(
       children: [
         Container(

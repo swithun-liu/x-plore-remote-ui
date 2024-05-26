@@ -27,7 +27,7 @@ class FileListPage extends StatefulWidget {
 }
 
 class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClientMixin {
-  FolderData root = FolderData("root", 0, "-", 0, isOpen: false);
+  FolderData root = FolderData("root", 0, "", 0, isOpen: false);
   List<DirectoryUIData> directories = [];
   var logger = Logger();
   String ip = '192.168.31.249';
@@ -102,7 +102,6 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
   }
 
   List<DirectoryUIData> parseFileList() {
-    logger.d('swithun-xxxx parseFileList');
     List<DirectoryUIData> directories = [];
     return iParsePath(directories, root, 0);
   }
@@ -138,7 +137,6 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
           break;
         }
     }
-    logger.d('swithun-xxxx iParsePath ${directories.length}');
     return directories;
   }
 
@@ -172,8 +170,8 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
             folder.isOpen = false;
           } else {
             folder.isOpen = true;
-            if (path.path == '-') {
-              await _getBaseFileList_V2();
+            if (path.path == root.path) {
+              await  _getChildFileList_V2(root);
             } else {
               await _getChildFileList_V2(path as FolderData);
             }
@@ -196,7 +194,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
 
   _getChildFileList_V2(FolderData folder) async {
     var newFolder = folder;
-    newFolder.children = await repoV2.getPaths(folder.path, folder.level);
+    newFolder.children = await repoV2.getPaths(folder, folder.level);
 
     setState(() {
       folder = newFolder;
@@ -260,7 +258,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
 
   _getBaseFileList_V2() async {
     var newRoot = root;
-    newRoot.children = await repoV2.getPaths("", root.level);
+    newRoot.children = await repoV2.getPaths(root, root.level);
     setState(() {
       root = newRoot;
     });
