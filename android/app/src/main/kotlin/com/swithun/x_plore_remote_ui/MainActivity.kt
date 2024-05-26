@@ -3,15 +3,21 @@ package com.swithun.x_plore_remote_ui
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.os.StrictMode
+import android.provider.Settings.Global
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.auth.AuthenticationContext
+import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.hierynomus.smbj.share.Share
 import com.swithun.x_plore_remote_ui.sever.SMBToHTTPServer
 import fi.iki.elonen.NanoHTTPD
 import io.flutter.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : FlutterActivity() {
 
@@ -33,8 +39,10 @@ class MainActivity : FlutterActivity() {
                 result.success(testChannel())
             }
             if (call.method == "getPathList") {
-                val parent = call.argument<String>("parent")!!
-                result.success(getPathList(parent))
+                GlobalScope.launch(Dispatchers.IO) {
+                    val parent = call.argument<String>("parent")!!
+                    result.success(getPathList(parent))
+                }
             }
         }
     }
@@ -44,32 +52,32 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun getPathList(parent: String): List<String> {
-        Log.d("swithun-xxxx", "[ANDROID] getPathList: ${parent}")
-
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
-
         val pathList = mutableListOf<String>();
 
-        val client = SMBClient()
-        client.connect("192.168.31.36")?.let { connection ->
-            val ac = AuthenticationContext("Guest", CharArray(0), "")
-            connection.authenticate(ac)?.let { session ->
-                session.connectShare("share")?.let { share ->
-                    Log.d("swithun-xxxx", "share smbpath: ${share.smbPath}")
-                    (share as? DiskShare)?.let { diskShare ->
-                        diskShare.list(parent).forEach {
-                            Log.d("swithun-xxxx", "folder($parent): ${it.fileName}")
-                            pathList.add(it.fileName)
-                        }
-                    }
+        (share as? DiskShare)?.let { diskShare ->
+            try {
+                diskShare.list(parent).forEach {
+                    Log.d("swithun-xxxx", "[getPathList] folder($parent): ${it.fileName}")
+                    pathList.add(it.fileName)
                 }
+            } catch (e: Exception) {
+                Log.e("swithun-xxxx", "[getPathList] failed ${e.message}")
             }
         }
 
         return pathList
 
     }
+
+
+    private val share: Share by lazy {
+        val client = SMBClient()
+        val connection = client.connect("192.168.31.36")
+        val ac = AuthenticationContext("Guest", charArrayOf(), "")
+        val session: Session = connection.authenticate(ac)
+        session.connectShare("share")
+    }
+
 
     private fun startServer() {
         Log.d(TAG, "begin Server started on port 8080")

@@ -18,7 +18,7 @@ class SmbFileRepo implements IFileRepo {
   @override
   Future<List<PathData>> getPaths(FolderData parent, int level) async {
     List<Object?> paths = await SMBChannel.getPathList(parent.path);
-    logger.d("[getPathList] $paths}");
+    logger.d("[getPathList] for ${parent.path} | ${paths.length} | $paths}");
 
     List<PathData> pathDatas = paths.mapNotNull((childName) {
       var childPath = "${parent.path}/$childName";
@@ -31,7 +31,7 @@ class SmbFileRepo implements IFileRepo {
       }
     }).toList();
 
-    testScrap();
+    // testScrap();
 
     return pathDatas;
   }

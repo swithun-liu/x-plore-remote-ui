@@ -66,7 +66,11 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
     root.children = children;
     var mediaInfoMap = Map<String, List<MediaInfo>>();
     await iParsePostItemsV2(root, posts, mediaInfoMap);
-    logger.d("[refreshDataV2] postwallpage posts ${posts.length} ${mediaInfoMap.keys}");
+    logger.d("[refreshDataV2] postwallpage posts ${posts.length} ${mediaInfoMap.keys} ${mediaInfoMap.keys.length}");
+    mediaInfoMap.forEach((key, infos) {
+      posts.add(PostItemUIData(key, key, null));
+    });
+
     setState(() { });
   }
 
@@ -80,7 +84,7 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
       if (c.runtimeType == FileData) {
         var child = c as FileData;
         logger.d("[refreshDataV2]: file ${child.path}");
-        var mediaInfo = extractMediaInfo(child.name);
+        var mediaInfo = extractMediaInfo(child.name, child.path);
         var oldMediaInfoList = mediaInfoMap[mediaInfo.name];
         if (oldMediaInfoList == null) {
           var newMediaInfoList = [ mediaInfo ];
@@ -93,7 +97,7 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
         logger.d("[refreshDataV2]: folder ${child.path}");
         var childChildren = await repoV2.getPaths(child, child.level);
         child.children = childChildren;
-        iParsePostItemsV2(child, posts, mediaInfoMap);
+        await iParsePostItemsV2(child, posts, mediaInfoMap);
       }
     }
   }
