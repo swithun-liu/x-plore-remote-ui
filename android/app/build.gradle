@@ -74,4 +74,5 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "com.hierynomus:smbj:0.13.0"
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
 }

@@ -1,6 +1,7 @@
 package com.swithun.x_plore_remote_ui
 
-import android.os.Build
+import android.os.Bundle
+import android.os.PersistableBundle
 import android.os.StrictMode
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -8,14 +9,21 @@ import io.flutter.plugin.common.MethodChannel
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.share.DiskShare
+import com.swithun.x_plore_remote_ui.sever.SMBToHTTPServer
+import fi.iki.elonen.NanoHTTPD
 import io.flutter.Log
 
 class MainActivity : FlutterActivity() {
 
     private val CHANNEL = "com.swithun/SMB"
 
+    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        super.onCreate(savedInstanceState, persistentState)
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        startServer()
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -61,6 +69,17 @@ class MainActivity : FlutterActivity() {
 
         return pathList
 
+    }
+
+    private fun startServer() {
+        Log.d(TAG, "begin Server started on port 8080")
+        val server = SMBToHTTPServer()
+        server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
+        Log.d(TAG, "Server started on port 8080")
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
     }
 
 }

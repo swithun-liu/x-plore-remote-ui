@@ -170,11 +170,7 @@ class _FileListPageState extends State<FileListPage> with AutomaticKeepAliveClie
             folder.isOpen = false;
           } else {
             folder.isOpen = true;
-            if (path.path == root.path) {
-              await  _getChildFileList_V2(root);
-            } else {
-              await _getChildFileList_V2(path);
-            }
+            await _getChildFileList(path);
           }
         }
       case FileData:
