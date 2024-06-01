@@ -41,20 +41,20 @@ class _PostWallPageState extends State<PostWallPage>
     refreshDataV2();
   }
 
-  void refreshData() async {
-    posts = [];
-
-    String path = widget.getVideoRootPath();
-    String ip = SettingStore.getIp();
-    var url = Uri.http('$ip:1111', path, {'cmd': 'list'});
-    var urlStr = url.toString();
-    logger.d("postwallpage $urlStr");
-    FolderData root = FolderData("root", 0, path, 0);
-    await fileRepo.getChildren(root, ip);
-    iParsePostItems(root, posts);
-    logger.d("postwallpage posts ${posts.length}");
-    setState(() {});
-  }
+  // void refreshData() async {
+  //   posts = [];
+  //
+  //   String path = widget.getVideoRootPath();
+  //   String ip = SettingStore.getIp();
+  //   var url = Uri.http('$ip:1111', path, {'cmd': 'list'});
+  //   var urlStr = url.toString();
+  //   logger.d("postwallpage $urlStr");
+  //   FolderData root = FolderData("root", 0, path, 0);
+  //   await fileRepo.getChildren(root, ip);
+  //   iParsePostItems(root, posts);
+  //   logger.d("postwallpage posts ${posts.length}");
+  //   setState(() {});
+  // }
 
   void refreshDataV2() async {
     posts = [];
@@ -64,14 +64,22 @@ class _PostWallPageState extends State<PostWallPage>
     root.children = children;
     var mediaInfoMap = Map<String, List<MediaInfo>>();
     await iParsePostItemsV2(root, posts, mediaInfoMap);
-    logger.d(
-        "[refreshDataV2] postwallpage posts ${posts.length} ${mediaInfoMap.keys} ${mediaInfoMap.keys.length}");
+
+
     for (var key in mediaInfoMap.keys) {
+      var mediaInfos = mediaInfoMap[key]!;
+      for (var mediaInfo in mediaInfos) {
+        logger.d("[refreshDataV2] mediaInfo [${mediaInfo.name}, ${mediaInfo.path}, ${mediaInfo.isMovie}]");
+      }
+    }
+
+    for (var key in mediaInfoMap.keys) {
+      var mediaInfos = mediaInfoMap[key]!;
       var result =
-          await ScrapUtil.scrapMedia(key, mediaInfoMap[key]![0].isMovie);
+          await ScrapUtil.scrapMedia(key, mediaInfos[0].isMovie);
       var postUrl = result?.postUrl ?? "";
       var uri = Uri.parse("https://image.tmdb.org/t/p/w500$postUrl");
-      posts.add(PostItemUIData(key, key, uri));
+      posts.add(PostItemUIData(key, key, uri, mediaInfos));
     }
 
     setState(() {});
@@ -106,37 +114,37 @@ class _PostWallPageState extends State<PostWallPage>
     }
   }
 
-  void iParsePostItems(FolderData current, List<PostItemUIData> posts) {
-    for (var c in current.children) {
-      if (c.runtimeType == FolderData) {
-        FolderData child = (c as FolderData);
-        // 视频文件夹
-        if (child.name.startsWith('vd_')) {
-          PathData? thumbnailVideoChild = null;
-
-          try {
-            thumbnailVideoChild = current.children.firstWhere((element) {
-              return element.path.endsWith("mp4") ||
-                  element.path.endsWith("mkv");
-            });
-          } catch (e) {}
-
-          Uri? thumbnailUrl = null;
-
-          if (thumbnailVideoChild != null) {
-            String ip = SettingStore.getIp();
-            thumbnailUrl = Uri.http(
-                '$ip:1111', thumbnailVideoChild.path, {'cmd': 'thumbnail'});
-          }
-
-          var post = PostItemUIData(child.name, child.path, thumbnailUrl);
-          posts.add(post);
-        }
-
-        iParsePostItems(child, posts);
-      }
-    }
-  }
+  // void iParsePostItems(FolderData current, List<PostItemUIData> posts) {
+  //   for (var c in current.children) {
+  //     if (c.runtimeType == FolderData) {
+  //       FolderData child = (c as FolderData);
+  //       // 视频文件夹
+  //       if (child.name.startsWith('vd_')) {
+  //         PathData? thumbnailVideoChild = null;
+  //
+  //         try {
+  //           thumbnailVideoChild = current.children.firstWhere((element) {
+  //             return element.path.endsWith("mp4") ||
+  //                 element.path.endsWith("mkv");
+  //           });
+  //         } catch (e) {}
+  //
+  //         Uri? thumbnailUrl = null;
+  //
+  //         if (thumbnailVideoChild != null) {
+  //           String ip = SettingStore.getIp();
+  //           thumbnailUrl = Uri.http(
+  //               '$ip:1111', thumbnailVideoChild.path, {'cmd': 'thumbnail'});
+  //         }
+  //
+  //         var post = PostItemUIData(child.name, child.path, thumbnailUrl);
+  //         posts.add(post);
+  //       }
+  //
+  //       iParsePostItems(child, posts);
+  //     }
+  //   }
+  // }
 
   Widget wallPage() {
     return Padding(

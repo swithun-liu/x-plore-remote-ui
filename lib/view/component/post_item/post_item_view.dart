@@ -9,6 +9,7 @@ import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/util/CommonUtil.dart';
 import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
 import 'package:x_plore_remote_ui/view/component/post_item/post_item_bloc.dart';
+import 'package:x_plore_remote_ui/view/window/MediaDetailPage.dart';
 
 import '../../../model/Path.dart';
 import '../../../repo/FileRepo.dart';
@@ -55,7 +56,7 @@ class _PostItemViewState extends State<PostItemView> {
         children: [
           GestureDetector(
             onTap: () {
-              tapPostItemV2(uiData.folderPath);
+              tapPostItemV2(uiData);
             },
             child: Container(
               width: double.infinity,
@@ -113,8 +114,8 @@ class _PostItemViewState extends State<PostItemView> {
     );
   }
 
-  void tapPostItemV2(String path) async {
-    Navigator.pushNamed(context, RouterName.mediaDetail, arguments: {'path': path});
+  void tapPostItemV2(PostItemUIData uiData) async {
+    Navigator.pushNamed(context, RouterName.mediaDetail, arguments: MediaDetailPageData(uiData: uiData));
   }
 
   void tapPostItem(String path) async {

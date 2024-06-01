@@ -2,8 +2,10 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
 import 'package:x_plore_remote_ui/view/page/HomePage.dart';
 import 'package:x_plore_remote_ui/view/window/MediaDetailPage.dart';
+import 'package:flutter/material.dart' as MMMM;
 
 void main() async {
   await Hive.initFlutter();
@@ -23,7 +25,13 @@ class MyApp extends StatelessWidget {
       initialRoute: '/home',
       routes: {
         RouterName.home: (context) => const MyHomePage(title: 'haha'),
-        RouterName.mediaDetail: (context) => const MediaDetailPage(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == RouterName.mediaDetail) {
+          return MMMM.MaterialPageRoute(
+            builder: (context) => MediaDetailPage(data: settings.arguments as MediaDetailPageData),
+          );
+        }
       },
     );
   }

@@ -20,6 +20,20 @@ class ScrapUtil {
     try {
       if (isMovie) {
         var result = await tmdb.v3.search.queryMovies(name);
+        logger.i('[ScrapUtil] [scrapMedia] $name $isMovie result $result');
+        var innerResult = result['results'];
+        if (innerResult != null) {
+          var firstResult = innerResult[0];
+          if (firstResult != null) {
+            var url = firstResult['poster_path'];
+            if (url != null) {
+              postUrl = url;
+            }
+          }
+        }
+      } else {
+        var result = await tmdb.v3.search.queryTvShows(name);
+        logger.i('[ScrapUtil] [scrapMedia] $name $isMovie result $result');
         var innerResult = result['results'];
         if (innerResult != null) {
           var firstResult = innerResult[0];
