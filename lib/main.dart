@@ -3,6 +3,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:x_plore_remote_ui/view/page/HomePage.dart';
+import 'package:x_plore_remote_ui/view/window/MediaDetailPage.dart';
 
 void main() async {
   await Hive.initFlutter();
@@ -19,7 +20,16 @@ class MyApp extends StatelessWidget {
     return FluentApp(
       title: 'Flutter Demo',
       theme: FluentThemeData(),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      initialRoute: '/home',
+      routes: {
+        RouterName.home: (context) => const MyHomePage(title: 'haha'),
+        RouterName.mediaDetail: (context) => const MediaDetailPage(),
+      },
     );
   }
+}
+
+class RouterName {
+  static const String home = '/home';
+  static const String mediaDetail = '/media_detail';
 }

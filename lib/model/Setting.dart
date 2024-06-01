@@ -8,7 +8,9 @@ class SettingStore {
     settingBox.get("ip", defaultValue: ""),
     settingBox.get("name", defaultValue: ""),
     settingBox.get("password", defaultValue: ""),
-    settingBox.get("path", defaultValue: "")
+    settingBox.get("path", defaultValue: ""),
+    settingBox.get("scarpApiKey", defaultValue: ""),
+    settingBox.get("scarpApiToken", defaultValue: ""),
   );
 
   static Setting getSetting() {

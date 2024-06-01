@@ -30,6 +30,8 @@ class _SettingPageState extends State<SettingPage> {
     name = SettingStore.getName();
     password = SettingStore.getPassword();
     path = SettingStore.getPath();
+    scrapApiKey = SettingStore.getScarpApiKey();
+    scrapApiToken = SettingStore.getScarpApiToken();
   }
 
   @override

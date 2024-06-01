@@ -82,34 +82,6 @@ class _PostWallPageState extends State<PostWallPage>
     return wallPage();
   }
 
-  var tmdbWithCustomLogs = TMDB(
-      ApiKeys('31e942957a41df2217cc2eaeb960c4b0',
-          'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzMWU5NDI5NTdhNDFkZjIyMTdjYzJlYWViOTYwYzRiMCIsInN1YiI6IjY1NmFlNGUwODg2MzQ4MDE0ZDgzYzM5YyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.2oVrbs0i6kNCr_dlT09-dB1n6TLrIavyGdcFfery1I8'),
-      logConfig: const ConfigLogger(showLogs: true, showErrorLogs: true));
-
-  Future<String> testScrap(String name, bool isMove) async {
-    var url = "";
-
-    try {
-      var result = await tmdbWithCustomLogs.v3.search.queryMovies(name);
-      var innerResult = result['results'];
-      if (innerResult == null) {
-        return "";
-      }
-      var firstResult = innerResult[0];
-      if (firstResult == null) {
-        return "";
-      }
-
-      url = firstResult['poster_path'];
-      logger.d("[TMDB] result $url");
-    } catch (exception) {
-      logger.d("[TMDB] result err $exception");
-    }
-
-    return url;
-  }
-
   Future<void> iParsePostItemsV2(FolderData current, List<PostItemUIData> posts,
       Map<String, List<MediaInfo>> mediaInfoMap) async {
     for (var c in current.children) {

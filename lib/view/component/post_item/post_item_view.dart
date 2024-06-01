@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
+import 'package:x_plore_remote_ui/main.dart';
 import 'package:x_plore_remote_ui/model/Setting.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/util/CommonUtil.dart';
@@ -54,7 +55,7 @@ class _PostItemViewState extends State<PostItemView> {
         children: [
           GestureDetector(
             onTap: () {
-              tapPostItem(uiData.folderPath);
+              tapPostItemV2(uiData.folderPath);
             },
             child: Container(
               width: double.infinity,
@@ -110,6 +111,10 @@ class _PostItemViewState extends State<PostItemView> {
         ],
       ),
     );
+  }
+
+  void tapPostItemV2(String path) async {
+    Navigator.pushNamed(context, RouterName.mediaDetail, arguments: {'path': path});
   }
 
   void tapPostItem(String path) async {
