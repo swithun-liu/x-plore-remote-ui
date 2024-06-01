@@ -1,8 +1,10 @@
+import 'package:event_bus/event_bus.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
+import 'package:x_plore_remote_ui/eventbus/EventBus.dart';
 import 'package:x_plore_remote_ui/model/Directory.dart';
 import 'package:x_plore_remote_ui/model/Setting.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
@@ -25,6 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> history = [];
   VideoSource? videoSource;
   late Box settingBox;
+  Logger logger = Logger();
 
   bool fullScreeVideo = false;
 
@@ -39,6 +42,15 @@ class _MyHomePageState extends State<MyHomePage> {
       this.history = history;
       logger.d("history $history");
     }
+
+    initObserve();
+  }
+
+  void initObserve() {
+    ALL_EVENTS.eventBus.on<ChangeVideoSourceEvent>().listen((event) {
+      logger.d("[Home Page] [observe] ChangeVideoSourceEvent ${event.source.getUrl(SettingStore.getIp())}");
+      copyVideoLinkAndChangePlaying(event.source);
+    });
   }
 
   @override

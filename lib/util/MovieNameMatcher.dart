@@ -6,6 +6,10 @@ class MediaInfo {
   final String path;
 
   MediaInfo(this.name, this.isMovie, this.path);
+
+  String getUrlPath() {
+    return "http://localhost:8080/?path=$path";
+  }
 }
 
 MediaInfo extractMediaInfo(String fileName, String path) {

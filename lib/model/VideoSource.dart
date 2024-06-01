@@ -20,7 +20,8 @@ class HTTPVideoSourceGroup extends VideoSource {
 
   @override
   String getUrl(String ip) {
-    var uri = Uri.http('$ip:1111', urls[pos], {'cmd': 'file'});
-    return uri.toString();
+    return urls[pos];
+    // var uri = Uri.http('$ip:1111', urls[pos], {'cmd': 'file'});
+    // return uri.toString();
   }
 }

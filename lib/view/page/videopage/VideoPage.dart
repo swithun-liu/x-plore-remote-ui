@@ -55,7 +55,8 @@ class _VideoPageState extends State<VideoPage>
     logger.d('didUpdateWidget');
     super.didUpdateWidget(oldWidget);
     if (oldWidget.videoSource != widget.videoSource) {
-      _controller?.dispose();
+      _slideValue = 0.0;
+      _controller.dispose();
       _initializeController();
     }
   }
