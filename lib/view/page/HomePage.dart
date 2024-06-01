@@ -4,13 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/model/Directory.dart';
+import 'package:x_plore_remote_ui/model/Setting.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/view/component/navigationview/NavigationView.dart';
-import 'package:x_plore_remote_ui/view/page/FileListPage.dart';
-import 'package:x_plore_remote_ui/view/page/HistoryPage.dart';
-import 'package:x_plore_remote_ui/view/page/SettingPage.dart';
-import 'package:x_plore_remote_ui/view/page/videopage/VideoPage.dart';
-
 import '../../model/Path.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -23,28 +19,21 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String ip = '192.168.31.249';
-  String name = "Guest";
-  String password = "";
   List<String> data = [];
   FolderData root = FolderData("root", 0, "/", -1, isOpen: false);
   int topIndex = 0;
   List<String> history = [];
   VideoSource? videoSource;
+  late Box settingBox;
 
-  late final Box settingBox;
   bool fullScreeVideo = false;
 
   @override
   void initState() {
     var logger = Logger();
     super.initState();
-    settingBox = Hive.box("setting");
-    var ip = settingBox.get("ip");
-    logger.d("db ip $ip");
-    if (ip != null) {
-      this.ip = ip;
-    }
+    settingBox = Hive.box('setting');
+
     var history = settingBox.get("history") as List<String>?;
     if (history != null) {
       this.history = history;
@@ -85,36 +74,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return SwithunNavigationView(
         updateVideoSource,
         videoSource,
-        changeIp,
-        changeName,
-        changePassword,
-        changePath,
         history,
         getIsFullScreen,
         changeFullScreen,
         setVideoRootPath,
         getVideoRootPath,
-        getIp,
-        getName,
-        getPassword,
-        getPath,
         copyVideoLinkAndChangePlaying);
-  }
-
-  String getIp() {
-    return settingBox.get("ip") ?? "";
-  }
-
-  String getName() {
-    return settingBox.get("name") ?? "";
-  }
-
-  String getPassword() {
-    return settingBox.get("password") ?? "";
-  }
-
-  String getPath() {
-    return settingBox.get("path") ?? "";
   }
 
 
@@ -128,29 +93,23 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void changeIp(String newIp) {
-    var logger = Logger();
-    logger.d("changeIp $newIp");
-    ip = newIp;
     settingBox.put("ip", newIp);
+    SettingStore.changeIp(newIp);
   }
 
   void changeName(String newName) {
-    var logger = Logger();
-    logger.d("changeName $newName");
-    name = newName;
     settingBox.put("name", newName);
+    SettingStore.changeName(newName);
   }
 
   void changePassword(String newPassword) {
-    var logger = Logger();
-    logger.d("changeName $newPassword");
-    password = newPassword;
     settingBox.put("password", newPassword);
+    SettingStore.changePassword(newPassword);
   }
 
   void changePath(String newPath) {
-    password = newPath;
     settingBox.put("path", newPath);
+    SettingStore.changePath(newPath);
   }
 
   String test(String Function() getIP) {
@@ -159,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void copyVideoLinkAndChangePlaying(VideoSource videoSource) {
     // 复制
-    String url = videoSource.getUrl(ip);
+    String url = videoSource.getUrl(SettingStore.getIp());
     Clipboard.setData(ClipboardData(text: url));
     // 复制提示
     displayInfoBar(context, builder: (context, close) {
@@ -187,7 +146,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void copyVideoLinkAndChangePlayingOld(FileData file) {
     var logger = Logger();
 
-    var uri = Uri.http('$ip:1111', file.path, {'cmd': 'file'});
+    var uri =
+        Uri.http('${SettingStore.getIp()}:1111', file.path, {'cmd': 'file'});
     var url = uri.toString();
     logger.d('swithun-xxxx $url');
     Clipboard.setData(ClipboardData(text: url));
@@ -209,5 +169,4 @@ class _MyHomePageState extends State<MyHomePage> {
       history = newHistory;
     });
   }
-
 }

@@ -4,7 +4,7 @@ import 'package:x_plore_remote_ui/view/page/PostWallPage.dart';
 import 'package:x_plore_remote_ui/view/page/videopage/VideoPageDependency.dart';
 
 import '../../../model/Directory.dart';
-import '../../../model/Path.dart';
+import '../../../model/Setting.dart';
 import '../../page/FileListPage.dart';
 import '../../page/HistoryPage.dart';
 import '../../page/SettingPage.dart';
@@ -13,14 +13,6 @@ import '../../page/videopage/VideoPage.dart';
 class SwithunNavigationView extends StatefulWidget {
   void Function(String url) updateVideoSource;
   VideoSource? videoSource;
-  String Function() getIp;
-  String Function() getName;
-  String Function() getPassword;
-  String Function() getPath;
-  void Function(String newIp) changeIp;
-  void Function(String newIp) changeName;
-  void Function(String newIp) changePassword;
-  void Function(String newIp) changePath;
   List<String> history;
   bool Function() getIsFullScreen;
   void Function(bool isfull) changeFullScreen;
@@ -31,19 +23,11 @@ class SwithunNavigationView extends StatefulWidget {
   SwithunNavigationView(
       this.updateVideoSource,
       this.videoSource,
-      this.changeIp,
-      this.changeName,
-      this.changePassword,
-      this.changePath,
       this.history,
       this.getIsFullScreen,
       this.changeFullScreen,
       this.setVideoRootPath,
       this.getVideoRootPath,
-      this.getIp,
-      this.getName,
-      this.getPassword,
-      this.getPath,
       this.copyFileUrlToClipboard,
       {super.key});
 
@@ -95,7 +79,7 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
                   widget.setVideoRootPath, widget.copyFileUrlToClipboard)),
           Container(
             color: Colors.white,
-            child: PostWallPage(widget.getVideoRootPath, widget.getIp,
+            child: PostWallPage(widget.getVideoRootPath, SettingStore.getIp,
                 widget.copyFileUrlToClipboard),
           ),
           Container(
@@ -105,18 +89,10 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
                   widget.getIsFullScreen,
                   widget.changeFullScreen,
                   VideoPageDependency(
-                      widget.copyFileUrlToClipboard, widget.getIp))),
+                      widget.copyFileUrlToClipboard, SettingStore.getIp))),
           Container(
             color: Colors.white,
-            child: SettingPage(
-                widget.getIp,
-                widget.getName,
-                widget.getPassword,
-                widget.getPath,
-                widget.changeIp,
-                widget.changeName,
-                widget.changePassword,
-                widget.changePath),
+            child: SettingPage(),
           ),
           Container(color: Colors.white, child: HistoryPage(widget.history)),
         ],

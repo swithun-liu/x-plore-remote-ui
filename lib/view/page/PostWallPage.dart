@@ -10,6 +10,7 @@ import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/repo/v2/IFileRepo.dart';
 import 'package:x_plore_remote_ui/repo/v2/SmbaFileRepo.dart';
 import 'package:x_plore_remote_ui/util/MovieNameMatcher.dart';
+import 'package:x_plore_remote_ui/util/ScrapUtil.dart';
 import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
 import 'package:x_plore_remote_ui/repo/FileRepo.dart';
 import 'package:x_plore_remote_ui/view/component/post_item/post_item_view.dart';
@@ -70,8 +71,9 @@ class _PostWallPageState extends State<PostWallPage> with AutomaticKeepAliveClie
     await iParsePostItemsV2(root, posts, mediaInfoMap);
     logger.d("[refreshDataV2] postwallpage posts ${posts.length} ${mediaInfoMap.keys} ${mediaInfoMap.keys.length}");
     for (var key in mediaInfoMap.keys) {
-      var rul = await testScrap(key, mediaInfoMap[key]![0].isMovie);
-      var uri = Uri.parse("https://image.tmdb.org/t/p/w500$rul");
+      var result = await ScrapUtil.scrapMedia(key, mediaInfoMap[key]![0].isMovie);
+      var postUrl = result?.postUrl ?? "";
+      var uri = Uri.parse("https://image.tmdb.org/t/p/w500$postUrl");
       posts.add(PostItemUIData(key, key, uri));
     }
 
