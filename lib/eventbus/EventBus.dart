@@ -8,6 +8,8 @@ class ChangeVideoSourceEvent {
   ChangeVideoSourceEvent(this.source);
 }
 
+class GotoVideoPage { }
+
 class ALL_EVENTS {
   static EventBus eventBus = new EventBus();
 }

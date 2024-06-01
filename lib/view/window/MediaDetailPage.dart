@@ -2,6 +2,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/eventbus/EventBus.dart';
+import 'package:x_plore_remote_ui/main.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
 
@@ -56,6 +57,8 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
     ALL_EVENTS.eventBus.fire(ChangeVideoSourceEvent(HTTPVideoSourceGroup(
         widget.data.uiData.mediaInfos.map((e) => e.getUrlPath()).toList(),
         index)));
+    ALL_EVENTS.eventBus.fire(GotoVideoPage());
+    Navigator.pop(context);
   }
 
   Widget buildMediaNameItem(MediaInfo mediaInfo, int index) {

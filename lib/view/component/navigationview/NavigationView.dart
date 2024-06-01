@@ -1,4 +1,5 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:x_plore_remote_ui/eventbus/EventBus.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/view/page/PostWallPage.dart';
 import 'package:x_plore_remote_ui/view/page/videopage/VideoPageDependency.dart';
@@ -66,6 +67,16 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+    ALL_EVENTS.eventBus.on<GotoVideoPage>().listen((event) {
+      setState(() {
+        gotoPage(2);
+      });
+    });
+  }
+
   Widget pages() {
     return Expanded(
       child: PageView(
@@ -117,10 +128,7 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    page_index = index;
-                    _pageController.animateToPage(index,
-                        duration: Duration(milliseconds: 300),
-                        curve: Curves.easeInOut);
+                    gotoPage(index);
                   });
                 },
                 child: Container(
@@ -150,6 +158,17 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
         ),
       ),
     );
+  }
+
+  void gotoPage(int index) {
+    if ((page_index - index).abs() > 1) {
+      _pageController.jumpToPage(index);
+    } else {
+      _pageController.animateToPage(index,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+    }
+
+    page_index = index;
   }
 }
 
