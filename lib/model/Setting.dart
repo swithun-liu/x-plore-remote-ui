@@ -12,7 +12,7 @@ class SettingStore {
   );
 
   static Setting getSetting() {
-    return Setting(_setting.ip, _setting.name, _setting.password, _setting.path);
+    return Setting(_setting.ip, _setting.name, _setting.password, _setting.path, _setting.scarpApiKey, _setting.scarpApiToken);
   }
 
   static String getIp() { return _setting.ip; }
@@ -22,6 +22,10 @@ class SettingStore {
   static String getPassword() { return _setting.password; }
 
   static String getPath() { return _setting.path; }
+
+  static String getScarpApiKey() { return _setting.scarpApiKey; }
+
+  static String getScarpApiToken() { return _setting.scarpApiToken; }
 
   static void changeIp(String newIp) {
     settingBox.put("ip", newIp);
@@ -42,6 +46,14 @@ class SettingStore {
     settingBox.put("path", newPath);
     _setting.path = newPath;
   }
+
+  static void changeScarpApiKey(String newScarpApiKey) {
+    settingBox.put("scarpApiKey", newScarpApiKey);
+  }
+
+  static void changeScarpApiToken(String newScarpApiToken) {
+    settingBox.put("scarpApiToken", newScarpApiToken);
+  }
 }
 
 class Setting {
@@ -49,8 +61,10 @@ class Setting {
   String name = "";
   String password = "";
   String path = "";
+  String scarpApiKey = "";
+  String scarpApiToken = "";
 
   // 构造函数，全部参数都可空
 
-  Setting([this.ip = "", this.name = "", this.password = "", this.path = ""]);
+  Setting([this.ip = "", this.name = "", this.password = "", this.path = "", this.scarpApiKey = "", this.scarpApiToken = ""]);
 }

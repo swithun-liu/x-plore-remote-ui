@@ -92,26 +92,6 @@ class _MyHomePageState extends State<MyHomePage> {
     return settingBox.get("video_root");
   }
 
-  void changeIp(String newIp) {
-    settingBox.put("ip", newIp);
-    SettingStore.changeIp(newIp);
-  }
-
-  void changeName(String newName) {
-    settingBox.put("name", newName);
-    SettingStore.changeName(newName);
-  }
-
-  void changePassword(String newPassword) {
-    settingBox.put("password", newPassword);
-    SettingStore.changePassword(newPassword);
-  }
-
-  void changePath(String newPath) {
-    settingBox.put("path", newPath);
-    SettingStore.changePath(newPath);
-  }
-
   String test(String Function() getIP) {
     return "test";
   }

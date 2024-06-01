@@ -79,8 +79,8 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
                   widget.setVideoRootPath, widget.copyFileUrlToClipboard)),
           Container(
             color: Colors.white,
-            child: PostWallPage(widget.getVideoRootPath, SettingStore.getIp,
-                widget.copyFileUrlToClipboard),
+            child: PostWallPage(
+                widget.getVideoRootPath, widget.copyFileUrlToClipboard),
           ),
           Container(
               color: Colors.black,

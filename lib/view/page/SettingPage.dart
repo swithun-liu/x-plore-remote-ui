@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:x_plore_remote_ui/channel/SMBChannel.dart';
 
 import '../../model/Setting.dart';
+import '../../util/ScrapUtil.dart';
 
 class SettingPage extends StatefulWidget {
 
@@ -19,6 +20,8 @@ class _SettingPageState extends State<SettingPage> {
   String name = "";
   String password = "";
   String path = "";
+  String scrapApiKey = "";
+  String scrapApiToken = "";
 
   @override
   void initState() {
@@ -66,13 +69,40 @@ class _SettingPageState extends State<SettingPage> {
             onChanged: onPathChanged,
           ),
         ),
-        Button(onPressed: connectSMB, child: const Text("连接"))
+        Button(onPressed: connectSMB, child: const Text("连接")),
+        InfoLabel(
+          label: 'Scrap API Key',
+          child: TextBox(
+            placeholder: scrapApiKey,
+            expands: false,
+            onChanged: (value) {
+              scrapApiKey = value;
+              SettingStore.changeScarpApiKey(value);
+            },
+          ),
+        ),
+        InfoLabel(
+            label: 'Scrap API Token',
+            child: TextBox(
+              placeholder: scrapApiToken,
+              expands: false,
+              onChanged: (value) {
+                scrapApiToken = value;
+                SettingStore.changeScarpApiToken(value);
+              },
+            )
+        ),
+        Button(child: const Text("初始化TMDB刮削器"), onPressed: initScrap),
       ],
     );
   }
 
   void connectSMB() {
     SMBChannel.connectSMB(ip, "", path, name, password);
+  }
+
+  void initScrap() {
+    ScrapUtil.init(scrapApiKey, scrapApiToken);
   }
 
   void onNameChanged(String value) {

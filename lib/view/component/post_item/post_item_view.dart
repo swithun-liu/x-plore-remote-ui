@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
+import 'package:x_plore_remote_ui/model/Setting.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
 import 'package:x_plore_remote_ui/util/CommonUtil.dart';
 import 'package:x_plore_remote_ui/view/component/post/data/PostUIData.dart';
@@ -15,10 +16,9 @@ import '../post/widget/CoverItem.dart';
 class PostItemView extends StatefulWidget {
 
   PostItemUIData post;
-  String Function() getIp;
   void Function(VideoSource videoSource) copyFileUrlToClipboard;
 
-  PostItemView(this.getIp, this.copyFileUrlToClipboard, this.post, {super.key});
+  PostItemView(this.copyFileUrlToClipboard, this.post, {super.key});
 
   @override
   State<PostItemView> createState() => _PostItemViewState();
@@ -60,7 +60,7 @@ class _PostItemViewState extends State<PostItemView> {
               width: double.infinity,
               height: double.infinity,
               color: Colors.yellow['lighter'],
-              child: CoverItem(widget.getIp(), uiData),
+              child: CoverItem(SettingStore.getIp(), uiData),
               // child: Image.network(
               //   'https://upload.wikimedia.org/wikipedia/zh/4/46/Better_Call_Saul_Season_6_DVD.jpg',
               //   fit: BoxFit.fitHeight,
@@ -115,7 +115,7 @@ class _PostItemViewState extends State<PostItemView> {
   void tapPostItem(String path) async {
     var logger = Logger();
     var parent = FolderData('', 0, path, 0);
-    await fileRepo.getOnlyNextChildren(parent, widget.getIp());
+    await fileRepo.getOnlyNextChildren(parent, SettingStore.getIp());
     List<FileData> files = [];
     logger.d('tapPostItem children: ${parent.children.length}');
     parent.children.forEach((element) {
