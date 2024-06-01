@@ -24,6 +24,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String ip = '192.168.31.249';
+  String name = "Guest";
+  String password = "";
   List<String> data = [];
   FolderData root = FolderData("root", 0, "/", -1, isOpen: false);
   int topIndex = 0;
@@ -83,20 +85,38 @@ class _MyHomePageState extends State<MyHomePage> {
     return SwithunNavigationView(
         updateVideoSource,
         videoSource,
-        getIP,
         changeIp,
+        changeName,
+        changePassword,
+        changePath,
         history,
         getIsFullScreen,
         changeFullScreen,
         setVideoRootPath,
         getVideoRootPath,
         getIp,
+        getName,
+        getPassword,
+        getPath,
         copyVideoLinkAndChangePlaying);
   }
 
   String getIp() {
-    return settingBox.get("ip");
+    return settingBox.get("ip") ?? "";
   }
+
+  String getName() {
+    return settingBox.get("name") ?? "";
+  }
+
+  String getPassword() {
+    return settingBox.get("password") ?? "";
+  }
+
+  String getPath() {
+    return settingBox.get("path") ?? "";
+  }
+
 
   void setVideoRootPath(FolderUIData directory) {
     String path = directory.path;
@@ -114,8 +134,23 @@ class _MyHomePageState extends State<MyHomePage> {
     settingBox.put("ip", newIp);
   }
 
-  String getIP() {
-    return ip;
+  void changeName(String newName) {
+    var logger = Logger();
+    logger.d("changeName $newName");
+    name = newName;
+    settingBox.put("name", newName);
+  }
+
+  void changePassword(String newPassword) {
+    var logger = Logger();
+    logger.d("changeName $newPassword");
+    password = newPassword;
+    settingBox.put("password", newPassword);
+  }
+
+  void changePath(String newPath) {
+    password = newPath;
+    settingBox.put("path", newPath);
   }
 
   String test(String Function() getIP) {
@@ -175,7 +210,4 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void test2() {
-    test(getIP);
-  }
 }

@@ -2,8 +2,6 @@ package com.swithun.x_plore_remote_ui
 
 import android.os.Bundle
 import android.os.PersistableBundle
-import android.os.StrictMode
-import android.provider.Settings.Global
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -22,6 +20,8 @@ import kotlinx.coroutines.launch
 class MainActivity : FlutterActivity() {
 
     private val CHANNEL = "com.swithun/SMB"
+
+    private var shareV2: Share? = null
 
     override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
@@ -44,17 +44,46 @@ class MainActivity : FlutterActivity() {
                     result.success(getPathList(parent))
                 }
             }
+            if (call.method == "connectSMB") {
+                GlobalScope.launch(Dispatchers.IO) {
+                    val ip = call.argument<String>("ip")!!
+                    val port = call.argument<String>("port")!!
+                    val path = call.argument<String>("path")!!
+                    val uname = call.argument<String>("uname")!!
+                    val upassword = call.argument<String>("upassword")!!
+                    connectSMB(ip, port, path, uname, upassword)
+                    result.success(null)
+                }
+            }
         }
+    }
+
+    private fun connectSMB(
+        ip: String,
+        port: String,
+        path: String,
+        uname: String,
+        upassword: String
+    ) {
+        shareV2?.close()
+
+        val client = SMBClient()
+        val connection = client.connect(ip)
+        val ac = AuthenticationContext(uname, upassword.toCharArray(), "")
+        val session: Session = connection.authenticate(ac)
+        val share = session.connectShare(path)
+        this.shareV2 = share
     }
 
     private fun testChannel(): String {
         return "Haha"
     }
 
+
     private fun getPathList(parent: String): List<String> {
         val pathList = mutableListOf<String>();
 
-        (share as? DiskShare)?.let { diskShare ->
+        (shareV2 as? DiskShare)?.let { diskShare ->
             try {
                 diskShare.list(parent).forEach {
                     Log.d("swithun-xxxx", "[getPathList] folder($parent): ${it.fileName}")

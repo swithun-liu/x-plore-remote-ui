@@ -60,18 +60,6 @@ class _VideoPageState extends State<VideoPage>
     }
   }
 
-  void testInitial() {
-    // VideoPlayerController.file(File('smb://192.168.31.36/share/video/movie/无人区.mp4')).initialize().then((_) {
-    //   setState(() {
-    //     stopOrBegin();
-    //   });
-    // });
-    _controller = VideoPlayerController.networkUrl(Uri.parse('http://192.168.31.36/v3/file?token=eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaWQiOjEsImlzcyI6ImNhc2FvcyIsImV4cCI6MTcxNjY1Nzc3NywibmJmIjoxNzE2NjQ2OTc3LCJpYXQiOjE3MTY2NDY5Nzd9.OnIxhLJ1sNP_CN1vBZTJjckzilXgV9mbGWE14evNvqSh1v1M911Vfr8yvQFeiQcc5XWYcyqtAKK9bOMZuGqAJg&path=/mnt/usbdisk/share/video/movie/无人区.mp4'))
-      ..initialize().then((_) => {setState(() {
-        stopOrBegin();
-      })});
-  }
-
   // Initialize video controller
   void _initializeController() {
     logger.d('_initializeController');

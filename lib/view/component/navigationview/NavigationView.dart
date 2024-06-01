@@ -13,27 +13,37 @@ import '../../page/videopage/VideoPage.dart';
 class SwithunNavigationView extends StatefulWidget {
   void Function(String url) updateVideoSource;
   VideoSource? videoSource;
-  String Function() getIP;
+  String Function() getIp;
+  String Function() getName;
+  String Function() getPassword;
+  String Function() getPath;
   void Function(String newIp) changeIp;
+  void Function(String newIp) changeName;
+  void Function(String newIp) changePassword;
+  void Function(String newIp) changePath;
   List<String> history;
   bool Function() getIsFullScreen;
   void Function(bool isfull) changeFullScreen;
   void Function(FolderUIData directory) setVideoRootPath;
   String Function() getVideoRootPath;
-  String Function() getIp;
   void Function(VideoSource videoSource) copyFileUrlToClipboard;
 
   SwithunNavigationView(
       this.updateVideoSource,
       this.videoSource,
-      this.getIP,
       this.changeIp,
+      this.changeName,
+      this.changePassword,
+      this.changePath,
       this.history,
       this.getIsFullScreen,
       this.changeFullScreen,
       this.setVideoRootPath,
       this.getVideoRootPath,
       this.getIp,
+      this.getName,
+      this.getPassword,
+      this.getPath,
       this.copyFileUrlToClipboard,
       {super.key});
 
@@ -81,10 +91,12 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
         children: [
           Container(
               color: Colors.white,
-              child: FileListPage(widget.updateVideoSource, widget.setVideoRootPath, widget.copyFileUrlToClipboard)),
+              child: FileListPage(widget.updateVideoSource,
+                  widget.setVideoRootPath, widget.copyFileUrlToClipboard)),
           Container(
-              color: Colors.white,
-              child: PostWallPage(widget.getVideoRootPath, widget.getIp, widget.copyFileUrlToClipboard),
+            color: Colors.white,
+            child: PostWallPage(widget.getVideoRootPath, widget.getIp,
+                widget.copyFileUrlToClipboard),
           ),
           Container(
               color: Colors.black,
@@ -92,12 +104,20 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
                   widget.videoSource,
                   widget.getIsFullScreen,
                   widget.changeFullScreen,
-                  VideoPageDependency(widget.copyFileUrlToClipboard, widget.getIp)
-              )
-          ),
+                  VideoPageDependency(
+                      widget.copyFileUrlToClipboard, widget.getIp))),
           Container(
-              color: Colors.white,
-              child: SettingPage(widget.getIP, widget.changeIp)),
+            color: Colors.white,
+            child: SettingPage(
+                widget.getIp,
+                widget.getName,
+                widget.getPassword,
+                widget.getPath,
+                widget.changeIp,
+                widget.changeName,
+                widget.changePassword,
+                widget.changePath),
+          ),
           Container(color: Colors.white, child: HistoryPage(widget.history)),
         ],
       ),
@@ -130,8 +150,8 @@ class _SwithunNavigationViewState extends State<SwithunNavigationView> {
                 child: Container(
                   width: 30,
                   height: 35,
-                  margin:
-                      const EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 10),
+                  margin: const EdgeInsets.only(
+                      left: 5, right: 5, top: 10, bottom: 10),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(5.0),
