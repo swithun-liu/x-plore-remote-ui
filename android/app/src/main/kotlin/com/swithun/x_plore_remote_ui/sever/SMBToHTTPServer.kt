@@ -14,6 +14,9 @@ import java.util.EnumSet
 
 class SMBToHTTPServer: NanoHTTPD(8080) {
 
+    private var share: DiskShare? = null
+    var ip: String = ""
+
     override fun serve(session: IHTTPSession?): Response {
         val uri = session?.uri
         val params = session?.parameters
@@ -54,13 +57,22 @@ class SMBToHTTPServer: NanoHTTPD(8080) {
         }
     }
 
-    private fun getFileStream(filePath: String): Pair<InputStream, Long> {
-        Log.d(TAG, "getFileStream $filePath")
+    fun reInitShare(smbIp: String): DiskShare {
+        this.ip = smbIp
+
         val client = SMBClient()
-        val connection = client.connect("192.168.31.36")
+        val connection = client.connect(smbIp)
         val ac = AuthenticationContext("Guest", charArrayOf(), "")
         val session: Session = connection.authenticate(ac)
         val share: DiskShare = session.connectShare("share") as DiskShare
+        this.share = share
+        return share
+    }
+
+    private fun getFileStream(filePath: String): Pair<InputStream, Long> {
+        Log.d(TAG, "getFileStream $filePath")
+        val share = share ?: reInitShare(ip)
+
         val file = share.openFile(filePath, EnumSet.of(AccessMask.GENERIC_READ), null, SMB2ShareAccess.ALL, SMB2CreateDisposition.FILE_OPEN, null)
         val size = file.fileInformation.standardInformation.endOfFile
         return file.inputStream to size

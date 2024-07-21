@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -18,37 +20,115 @@ class MediaDetailPage extends StatefulWidget {
 }
 
 class _MediaDetailPageState extends State<MediaDetailPage> {
-
   Logger logger = Logger();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              SizedBox(
-                width: 200,
-                height: 300,
-                child: Image.network(
-                  widget.data.uiData.thumbnailVideoUrl?.toString() ?? "",
-                  fit: BoxFit.fitHeight,
-                ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Expanded(
+            child: Container(
+              color: Colors.black,
+              child: Image.network(
+                widget.data.uiData.thumbnailVideoUrl?.toString() ?? "",
+                fit: BoxFit.fitHeight,
               ),
-            ],
+            ),
           ),
-          Expanded(child:
-              ListView.builder(
-                itemCount: widget.data.uiData.mediaInfos.length,
-                itemBuilder: (context, index) {
-                  return buildMediaNameItem(widget.data.uiData.mediaInfos[index], index);
-                },
-              )
-          )
-        ],
-      ),
+        ),
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: Container(
+            color: Colors.transparent,
+            child: Padding(
+              padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top), // 状态栏高度
+              child: Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // thumbnail
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, top: 16.0, bottom: 16.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(11),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(0.5),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: SizedBox(
+                                    width: 200,
+                                    height: 300,
+                                    child: Image.network(
+                                      widget.data.uiData.thumbnailVideoUrl
+                                              ?.toString() ??
+                                          "",
+                                      fit: BoxFit.fitHeight,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+          
+                      // 简介
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: 8.0, top: 26.0, bottom: 16.0, right: 8.0),
+                          child: Column(
+                            // 左上对齐
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(widget.data.uiData.name,
+                                  style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold)),
+                              Container(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  Expanded(
+                      child: ListView.builder(
+                    itemCount: widget.data.uiData.mediaInfos.length,
+                    itemBuilder: (context, index) {
+                      return buildMediaNameItem(
+                          widget.data.uiData.mediaInfos[index], index);
+                    },
+                  ))
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -93,7 +173,8 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(mediaInfo.name, style: TextStyle(fontSize: 16)),
-                        Text(mediaInfo.path, style: TextStyle(fontSize: 13, color: Colors.grey)),
+                        Text(mediaInfo.path,
+                            style: TextStyle(fontSize: 13, color: Colors.grey)),
                       ],
                     ),
                   ),
@@ -105,9 +186,7 @@ class _MediaDetailPageState extends State<MediaDetailPage> {
       ),
     );
   }
-
 }
-
 
 class MediaDetailPageData {
   final PostItemUIData uiData;

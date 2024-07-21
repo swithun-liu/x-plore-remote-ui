@@ -65,13 +65,11 @@ class _PostWallPageState extends State<PostWallPage>
     var mediaInfoMap = Map<String, List<MediaInfo>>();
     await iParsePostItemsV2(root, posts, mediaInfoMap);
 
+    var logMediaInfoMap = mediaInfoMap.entries.map((MapEntry<String, List<MediaInfo>> value) =>
+      value.value.map((info) => "[${info.name}, ${info.path}, ${info.isMovie}]").join(",")
+    ).join("\n");
 
-    for (var key in mediaInfoMap.keys) {
-      var mediaInfos = mediaInfoMap[key]!;
-      for (var mediaInfo in mediaInfos) {
-        logger.d("[refreshDataV2] mediaInfo [${mediaInfo.name}, ${mediaInfo.path}, ${mediaInfo.isMovie}]");
-      }
-    }
+    logger.d("[refreshDataV2] mediaInfo $logMediaInfoMap");
 
     for (var key in mediaInfoMap.keys) {
       var mediaInfos = mediaInfoMap[key]!;

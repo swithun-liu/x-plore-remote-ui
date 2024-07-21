@@ -1,5 +1,7 @@
 import 'dart:core';
 
+import 'package:x_plore_remote_ui/util/FileUtil.dart';
+
 class MediaInfo {
   final String name;
   final bool isMovie;
@@ -53,13 +55,15 @@ void main() {
     '哆啦A梦.S01E0526.mp4',
     'Inside.No.9.S05E00.Live.Dead.Line.2018.1080p.BluRay.x265.10bit.AC3-BitsTV.mkv',
     'Inside.No.9.S05E04.2020.1080p.WEB-DL.x265.10bit.AC3-BitsTV.mkv',
-    'Inside.No.9.S04E01.1080p.BluRay.x265-RARBG.mp4'
+    'Inside.No.9.S04E01.1080p.BluRay.x265-RARBG.mp4',
+    '[ 高清剧集网 www.BTHDTV.com ]9号秘事 第五季[全6集][中文字幕].S05.Inside.No.9.2020.1080p.BluRay.x265.AC3-BitsTV'
   ];
 
   for (var fileName in fileNames) {
-    final info = extractMediaInfo(fileName, fileName);
+    var isFile = FileUtil.isFile(fileName);
+    var ext = FileUtil.fileExt(fileName);
     print('File: $fileName');
-    print('Name: ${info.name}');
-    print('Type: ${info.isMovie ? "Movie" : "TV Show"}\n');
+    print('isFile: $isFile');
+    print('ext: $ext');
   }
 }

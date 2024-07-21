@@ -29,7 +29,6 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        startServer()
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -52,6 +51,7 @@ class MainActivity : FlutterActivity() {
                     val uname = call.argument<String>("uname")!!
                     val upassword = call.argument<String>("upassword")!!
                     connectSMB(ip, port, path, uname, upassword)
+                    startServer(ip)
                     result.success(null)
                 }
             }
@@ -98,19 +98,10 @@ class MainActivity : FlutterActivity() {
 
     }
 
-
-    private val share: Share by lazy {
-        val client = SMBClient()
-        val connection = client.connect("192.168.31.36")
-        val ac = AuthenticationContext("Guest", charArrayOf(), "")
-        val session: Session = connection.authenticate(ac)
-        session.connectShare("share")
-    }
-
-
-    private fun startServer() {
+    private fun startServer(ip: String) {
         Log.d(TAG, "begin Server started on port 8080")
         val server = SMBToHTTPServer()
+        server.reInitShare(ip)
         server.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
         Log.d(TAG, "Server started on port 8080")
     }
