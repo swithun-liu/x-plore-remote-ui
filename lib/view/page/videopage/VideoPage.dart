@@ -5,6 +5,9 @@ import 'package:chewie/chewie.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
+import 'package:subtitle_wrapper_package/data/data.dart';
+import 'package:subtitle_wrapper_package/subtitle_controller.dart';
+import 'package:subtitle_wrapper_package/subtitle_wrapper.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:x_plore_remote_ui/model/VideoSource.dart';
@@ -32,20 +35,29 @@ class VideoPage extends StatefulWidget {
 
 class _VideoPageState extends State<VideoPage>
     with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
-  late VideoPlayerController _controller;
+  
   Logger logger = Logger();
+  
+  /// 控制视频播放
+  late VideoPlayerController _videoPlayerController;
+  /// 控制器——控制条
   late AnimationController _videoControllerAnimCtrl;
+  /// 控制器-字幕
+  late SubtitleController _subtitleController;
+  /// 控制器蒙层 是否显示
   bool isVideoControllerIsShowing = false;
-  double _slideValue = 0.0;
+  /// 视频播放进度
+  double _playProcess = 0.0;
   bool rememberIsPlaying = false;
   late ChewieController _chewieController;
-  var control = CupertinoControls(
+  var _chewieControllerUI = CupertinoControls(
       backgroundColor: Colors.black.withAlpha(122), iconColor: Colors.white);
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(''))
+    updateSubtitle("http://localhost:8080/?path=/aria/s7/test.srt");
+    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(''))
       ..initialize().then((_) => {setState(() {})});
     _videoControllerAnimCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 200));
@@ -53,13 +65,26 @@ class _VideoPageState extends State<VideoPage>
     // testInitial();
   }
 
+  void updateSubtitle(String url) {
+    var subtitleType = SubtitleType.srt;
+    if (url.endsWith("srt")) {
+      subtitleType = SubtitleType.srt;
+    } else {
+      subtitleType = SubtitleType.webvtt;
+    }
+    _subtitleController = SubtitleController(
+      subtitleUrl: url,
+      subtitleType: subtitleType,
+    );
+  }
+
   @override
   void didUpdateWidget(covariant VideoPage oldWidget) {
     logger.d('didUpdateWidget');
     super.didUpdateWidget(oldWidget);
     if (oldWidget.videoSource != widget.videoSource) {
-      _slideValue = 0.0;
-      _controller.dispose();
+      _playProcess = 0.0;
+      _videoPlayerController.dispose();
       _initializeController();
     }
   }
@@ -75,7 +100,7 @@ class _VideoPageState extends State<VideoPage>
         case HTTPVideoSource:
           {
             logger.d("Video Page VS更新 ${vs.getUrl(widget.dependency.getIp())}");
-            _controller = VideoPlayerController.networkUrl(
+            _videoPlayerController = VideoPlayerController.networkUrl(
                 Uri.parse(vs.getUrl(widget.dependency.getIp())))
               ..initialize().then((_) => {
                     setState(() {
@@ -83,23 +108,9 @@ class _VideoPageState extends State<VideoPage>
                     })
                   });
             _chewieController = ChewieController(
-              videoPlayerController: _controller,
+              videoPlayerController: _videoPlayerController,
               autoPlay: true,
-              customControls: control,
-              subtitle: Subtitles([
-                Subtitle(
-                  index: 0,
-                  start: Duration.zero,
-                  end: const Duration(seconds: 10),
-                  text: 'Hello from subtitles',
-                ),
-                Subtitle(
-                  index: 1,
-                  start: const Duration(seconds: 10),
-                  end: const Duration(seconds: 20),
-                  text: 'Whats up? :)',
-                ),
-              ]),
+              customControls: _chewieControllerUI,
               subtitleBuilder: (context, subtitle) => Container(
                 padding: const EdgeInsets.all(10.0),
                 child: Text(
@@ -108,9 +119,9 @@ class _VideoPageState extends State<VideoPage>
                 ),
               ),
             );
-            _controller!.addListener(() {
+            _videoPlayerController!.addListener(() {
               // 监听是否正在播放
-              var videoIsPlaying = _controller!.value.isPlaying;
+              var videoIsPlaying = _videoPlayerController!.value.isPlaying;
               if (videoIsPlaying && !rememberIsPlaying) {
                 setState(() {
                   Wakelock.enable();
@@ -121,18 +132,18 @@ class _VideoPageState extends State<VideoPage>
                 });
               }
               // 错误监听
-              if (_controller!.value.hasError) {
+              if (_videoPlayerController!.value.hasError) {
                 // Handle video playback error
                 logger.d(
-                    "Video playback error: ${_controller!.value.errorDescription}");
+                    "Video playback error: ${_videoPlayerController!.value.errorDescription}");
               } else {
-                if (_controller.value.position.inSeconds ==
-                    _controller.value.duration.inSeconds) {
+                if (_videoPlayerController.value.position.inSeconds ==
+                    _videoPlayerController.value.duration.inSeconds) {
                   sleep(const Duration(seconds: 2));
                   gotoNext();
                 }
                 setState(() {
-                  _slideValue = _controller.value.position.inSeconds.toDouble();
+                  _playProcess = _videoPlayerController.value.position.inSeconds.toDouble();
                 });
               }
             });
@@ -148,8 +159,18 @@ class _VideoPageState extends State<VideoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return buildOld();
-    return buildNew();
+    return buildOldV2();
+  }
+
+  Widget buildOldV2() {
+    return SubtitleWrapper(
+      videoChild: buildOld(),
+      subtitleController: _subtitleController,
+      videoPlayerController: _videoPlayerController,
+      subtitleStyle: SubtitleStyle(
+        textColor: Colors.white,
+      ),
+    );
   }
 
   Widget buildNew() {
@@ -172,7 +193,7 @@ class _VideoPageState extends State<VideoPage>
 
   /// 构建播放器
   Widget buildVideoPlayer() {
-    VideoPlayerController? controller = _controller;
+    VideoPlayerController? controller = _videoPlayerController;
     Widget videoPlayer;
     videoPlayer = AspectRatio(
       aspectRatio: controller.value.aspectRatio,
@@ -218,7 +239,7 @@ class _VideoPageState extends State<VideoPage>
 
   /// 构建播放器控制器
   Widget buildVideoController() {
-    var controller = _controller;
+    var controller = _videoPlayerController;
     var max = 0.0;
     max = controller.value.duration.inSeconds.toDouble();
     return Container(
@@ -265,11 +286,11 @@ class _VideoPageState extends State<VideoPage>
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     child: Slider(
-                      value: _slideValue,
+                      value: _playProcess,
                       onChanged: (double value) {
                         setState(() {
-                          _slideValue = value;
-                          _controller?.seekTo(Duration(seconds: value.toInt()));
+                          _playProcess = value;
+                          _videoPlayerController?.seekTo(Duration(seconds: value.toInt()));
                         });
                       },
                       max: max,
@@ -328,10 +349,10 @@ class _VideoPageState extends State<VideoPage>
 
   void stopOrBegin() {
     setState(() {
-      if (_controller.value.isPlaying == true) {
-        _controller.pause();
+      if (_videoPlayerController.value.isPlaying == true) {
+        _videoPlayerController.pause();
       } else {
-        _controller.play();
+        _videoPlayerController.play();
       }
     });
   }
@@ -339,7 +360,7 @@ class _VideoPageState extends State<VideoPage>
   @override
   void dispose() {
     super.dispose();
-    _controller?.dispose();
+    _videoPlayerController?.dispose();
   }
 
   bool get wantKeepAlive => true;

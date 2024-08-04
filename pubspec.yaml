@@ -56,6 +56,7 @@ dependencies:
   samba_browser: ^0.0.2
   tmdb_api: ^2.2.0
   chewie: ^1.5.0
+  subtitle_wrapper_package: ^2.2.0
 
 dev_dependencies:
   flutter_test:
