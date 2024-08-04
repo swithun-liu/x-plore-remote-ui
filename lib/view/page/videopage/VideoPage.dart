@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:chewie/chewie.dart';
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
@@ -38,6 +40,7 @@ class _VideoPageState extends State<VideoPage>
   bool isVideoControllerIsShowing = false;
   double _slideValue = 0.0;
   bool rememberIsPlaying = false;
+  late ChewieController _chewieController;
 
   @override
   void initState() {
@@ -77,6 +80,7 @@ class _VideoPageState extends State<VideoPage>
                   ..initialize().then((_) => {setState(() {
                     stopOrBegin();
                   })});
+            _chewieController = ChewieController(videoPlayerController: _controller, autoPlay: true);
             _controller!.addListener(() {
               // 监听是否正在播放
               var videoIsPlaying = _controller!.value.isPlaying;
@@ -115,13 +119,23 @@ class _VideoPageState extends State<VideoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    return buildNew();
+  }
+
+  Widget buildNew() {
+    return Container(
+      child: Chewie(controller: _chewieController,),
+    );
+  }
+
+  Widget buildOld() {
     return Center(
         child: ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-          color: Colors.yellow,
-          child: Hero(tag: 'swithunVideo', child: buildVideoPlayer())),
-    ));
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+              color: Colors.yellow,
+              child: Hero(tag: 'swithunVideo', child: buildVideoPlayer())),
+        ));
   }
 
   /// 构建播放器
