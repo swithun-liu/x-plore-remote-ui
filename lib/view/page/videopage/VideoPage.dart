@@ -14,19 +14,17 @@ import 'VideoPageDependency.dart';
 class VideoPage extends StatefulWidget {
   /// 正在播放的视频源
   VideoSource? videoSource;
+
   /// 是否正在全屏播放
   bool Function() getIsFullScreen;
+
   /// 切换是否全屏播放
   void Function(bool isfull) changeFullScreen;
   VideoPageDependency dependency;
 
-  VideoPage(
-      this.videoSource,
-      this.getIsFullScreen,
-      this.changeFullScreen,
+  VideoPage(this.videoSource, this.getIsFullScreen, this.changeFullScreen,
       this.dependency,
-      {super.key}
-      );
+      {super.key});
 
   @override
   State<VideoPage> createState() => _VideoPageState();
@@ -41,6 +39,8 @@ class _VideoPageState extends State<VideoPage>
   double _slideValue = 0.0;
   bool rememberIsPlaying = false;
   late ChewieController _chewieController;
+  var control = CupertinoControls(
+      backgroundColor: Colors.black.withAlpha(122), iconColor: Colors.white);
 
   @override
   void initState() {
@@ -75,12 +75,39 @@ class _VideoPageState extends State<VideoPage>
         case HTTPVideoSource:
           {
             logger.d("Video Page VS更新 ${vs.getUrl(widget.dependency.getIp())}");
-            _controller =
-                VideoPlayerController.networkUrl(Uri.parse(vs.getUrl(widget.dependency.getIp())))
-                  ..initialize().then((_) => {setState(() {
-                    stopOrBegin();
-                  })});
-            _chewieController = ChewieController(videoPlayerController: _controller, autoPlay: true);
+            _controller = VideoPlayerController.networkUrl(
+                Uri.parse(vs.getUrl(widget.dependency.getIp())))
+              ..initialize().then((_) => {
+                    setState(() {
+                      stopOrBegin();
+                    })
+                  });
+            _chewieController = ChewieController(
+              videoPlayerController: _controller,
+              autoPlay: true,
+              customControls: control,
+              subtitle: Subtitles([
+                Subtitle(
+                  index: 0,
+                  start: Duration.zero,
+                  end: const Duration(seconds: 10),
+                  text: 'Hello from subtitles',
+                ),
+                Subtitle(
+                  index: 1,
+                  start: const Duration(seconds: 10),
+                  end: const Duration(seconds: 20),
+                  text: 'Whats up? :)',
+                ),
+              ]),
+              subtitleBuilder: (context, subtitle) => Container(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            );
             _controller!.addListener(() {
               // 监听是否正在播放
               var videoIsPlaying = _controller!.value.isPlaying;
@@ -99,7 +126,8 @@ class _VideoPageState extends State<VideoPage>
                 logger.d(
                     "Video playback error: ${_controller!.value.errorDescription}");
               } else {
-                if (_controller.value.position.inSeconds == _controller.value.duration.inSeconds) {
+                if (_controller.value.position.inSeconds ==
+                    _controller.value.duration.inSeconds) {
                   sleep(const Duration(seconds: 2));
                   gotoNext();
                 }
@@ -109,9 +137,10 @@ class _VideoPageState extends State<VideoPage>
               }
             });
           }
-        default: {
-          logger.d("Video Page default ${vs.runtimeType}");
-        }
+        default:
+          {
+            logger.d("Video Page default ${vs.runtimeType}");
+          }
       }
     }
   }
@@ -119,23 +148,26 @@ class _VideoPageState extends State<VideoPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    return buildOld();
     return buildNew();
   }
 
   Widget buildNew() {
     return Container(
-      child: Chewie(controller: _chewieController,),
+      child: Chewie(
+        controller: _chewieController,
+      ),
     );
   }
 
   Widget buildOld() {
     return Center(
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-              color: Colors.yellow,
-              child: Hero(tag: 'swithunVideo', child: buildVideoPlayer())),
-        ));
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+          color: Colors.yellow,
+          child: Hero(tag: 'swithunVideo', child: buildVideoPlayer())),
+    ));
   }
 
   /// 构建播放器
@@ -213,7 +245,9 @@ class _VideoPageState extends State<VideoPage>
                     child: Container(
                       padding: const EdgeInsets.all(5),
                       child: Icon(
-                        widget.getIsFullScreen() ? FluentIcons.back_to_window : FluentIcons.full_screen,
+                        widget.getIsFullScreen()
+                            ? FluentIcons.back_to_window
+                            : FluentIcons.full_screen,
                         color: Colors.white,
                       ),
                     ),
@@ -244,6 +278,7 @@ class _VideoPageState extends State<VideoPage>
                   ),
                 ),
               ),
+
               /// 播放/暂停
               Center(
                 child: Row(
