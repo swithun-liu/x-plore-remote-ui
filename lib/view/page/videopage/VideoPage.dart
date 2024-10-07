@@ -35,9 +35,9 @@ class VideoPage extends StatefulWidget {
 
 class _VideoPageState extends State<VideoPage>
     with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
-  
+
   Logger logger = Logger();
-  
+
   /// 控制视频播放
   late VideoPlayerController _videoPlayerController;
   /// 控制器——控制条
@@ -52,17 +52,19 @@ class _VideoPageState extends State<VideoPage>
   late ChewieController _chewieController;
   var _chewieControllerUI = CupertinoControls(
       backgroundColor: Colors.black.withAlpha(122), iconColor: Colors.white);
+  String subtitleUrl = "";
 
   @override
   void initState() {
     super.initState();
-    updateSubtitle("http://localhost:8080/?path=/aria/s7/test.srt");
-    _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(''))
-      ..initialize().then((_) => {setState(() {})});
+    updateSubtitle("");
+    _initializeController();
+    updateVideoControllerAnimCtrl();
+  }
+
+  void updateVideoControllerAnimCtrl() {
     _videoControllerAnimCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 200));
-    _initializeController();
-    // testInitial();
   }
 
   void updateSubtitle(String url) {
@@ -78,6 +80,67 @@ class _VideoPageState extends State<VideoPage>
     );
   }
 
+  void updateSubtitleUrl(String url) {
+    var subtitleType = SubtitleType.srt;
+    if (url.endsWith("srt")) {
+      subtitleType = SubtitleType.srt;
+    } else {
+      subtitleType = SubtitleType.webvtt;
+    }
+    _subtitleController.subtitleType = subtitleType;
+    _subtitleController.subtitleUrl = url;
+  }
+
+  void updateVideoPlayer(videoUrl) {
+    _videoPlayerController =
+        VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+          ..initialize().then((_) => {
+                setState(() {
+                  stopOrBegin();
+                })
+              });
+  }
+
+  void updateChewieController() {
+    _chewieController = ChewieController(
+      videoPlayerController: _videoPlayerController,
+      autoPlay: true,
+      customControls: _chewieControllerUI,
+    );
+  }
+
+  void listenVideoPlayProcess() {
+    _videoPlayerController.addListener(() {
+      // 监听是否正在播放
+      var videoIsPlaying = _videoPlayerController.value.isPlaying;
+      if (videoIsPlaying) {
+        setState(() {
+          Wakelock.enable();
+        });
+      } else {
+        setState(() {
+          Wakelock.disable();
+        });
+      }
+      // 错误监听
+      if (_videoPlayerController.value.hasError) {
+        logger.d(
+            "Video playback error: ${_videoPlayerController.value.errorDescription}");
+      } else {
+        // 自动播放下一集
+        if (_videoPlayerController.value.position.inSeconds ==
+            _videoPlayerController.value.duration.inSeconds) {
+          sleep(const Duration(seconds: 2));
+          gotoNext();
+        }
+        // 更新播放进度
+        setState(() {
+          _playProcess = _videoPlayerController.value.position.inSeconds.toDouble();
+        });
+      }
+    });
+  }
+
   @override
   void didUpdateWidget(covariant VideoPage oldWidget) {
     logger.d('didUpdateWidget');
@@ -86,6 +149,7 @@ class _VideoPageState extends State<VideoPage>
       _playProcess = 0.0;
       _videoPlayerController.dispose();
       _initializeController();
+      setState(() { });
     }
   }
 
@@ -94,59 +158,17 @@ class _VideoPageState extends State<VideoPage>
     logger.d('_initializeController');
     Wakelock.disable();
     VideoSource? vs = widget.videoSource;
+
     if (vs != null) {
       switch (vs.runtimeType) {
         case HTTPVideoSourceGroup:
         case HTTPVideoSource:
           {
             logger.d("Video Page VS更新 ${vs.getUrl(widget.dependency.getIp())}");
-            _videoPlayerController = VideoPlayerController.networkUrl(
-                Uri.parse(vs.getUrl(widget.dependency.getIp())))
-              ..initialize().then((_) => {
-                    setState(() {
-                      stopOrBegin();
-                    })
-                  });
-            _chewieController = ChewieController(
-              videoPlayerController: _videoPlayerController,
-              autoPlay: true,
-              customControls: _chewieControllerUI,
-              subtitleBuilder: (context, subtitle) => Container(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            );
-            _videoPlayerController!.addListener(() {
-              // 监听是否正在播放
-              var videoIsPlaying = _videoPlayerController!.value.isPlaying;
-              if (videoIsPlaying && !rememberIsPlaying) {
-                setState(() {
-                  Wakelock.enable();
-                });
-              } else if (!videoIsPlaying && rememberIsPlaying) {
-                setState(() {
-                  Wakelock.disable();
-                });
-              }
-              // 错误监听
-              if (_videoPlayerController!.value.hasError) {
-                // Handle video playback error
-                logger.d(
-                    "Video playback error: ${_videoPlayerController!.value.errorDescription}");
-              } else {
-                if (_videoPlayerController.value.position.inSeconds ==
-                    _videoPlayerController.value.duration.inSeconds) {
-                  sleep(const Duration(seconds: 2));
-                  gotoNext();
-                }
-                setState(() {
-                  _playProcess = _videoPlayerController.value.position.inSeconds.toDouble();
-                });
-              }
-            });
+            updateSubtitleUrl(subtitleUrl);
+            updateVideoPlayer(vs.getUrl(widget.dependency.getIp()));
+            updateChewieController();
+            listenVideoPlayProcess();
           }
         default:
           {
@@ -192,6 +214,7 @@ class _VideoPageState extends State<VideoPage>
   }
 
   /// 构建播放器
+  // updateSubtitleUrl("http://localhost:8080/?path=/aria/s7/test.srt");
   Widget buildVideoPlayer() {
     VideoPlayerController? controller = _videoPlayerController;
     Widget videoPlayer;
@@ -269,6 +292,27 @@ class _VideoPageState extends State<VideoPage>
                         widget.getIsFullScreen()
                             ? FluentIcons.back_to_window
                             : FluentIcons.full_screen,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  // updateSubtitleUrl("http://localhost:8080/?path=/aria/s7/test.srt");
+                  setState(() {
+                    subtitleUrl = "http://localhost:8080/?path=/aria/s7/test.srt";
+                  });
+                  _initializeController();
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                    child: Container(
+                      padding: const EdgeInsets.all(5),
+                      child: Icon( FluentIcons.accept_medium,
                         color: Colors.white,
                       ),
                     ),
